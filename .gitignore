@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local snapshot cache (regenerated automatically at runtime)
+fpl_data.db
+
+# Generated reports (contain league members' personal data - keep local only)
+*.xlsx
+*.csv
+
+# Local secrets - never commit real credentials
+.streamlit/secrets.toml
