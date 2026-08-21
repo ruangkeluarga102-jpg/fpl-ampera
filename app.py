@@ -1147,7 +1147,7 @@ if not standings_df.empty:
         rc1, rc2 = st.columns([5, 1.4])
         with rc1:
             st.markdown(f"##### 🎙️ Rekap Gameweek {selected_gw}")
-            st.caption("Ringkasan gameweek versi santai & jenaka, ditulis otomatis oleh AI (Gemini).")
+            st.caption("Analisa terstruktur gameweek ini versi pundit kenamaan")
         with rc2:
             gen_clicked = st.button("✨ Buat Rekap", key="btn_gw_recap", use_container_width=True)
 
