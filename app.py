@@ -1091,12 +1091,13 @@ with tab1:
 
     if not display_df.empty:
         # Table Header
-        h_rank, h_move, h_team, h_gw, h_tot, h_or, h_cap, h_chip, h_hits, h_val = st.columns(
-            [0.6, 0.7, 2.4, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
+        h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_chip, h_hits, h_val = st.columns(
+            [0.6, 0.7, 1.5, 1.3, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
         )
         h_rank.markdown('<div class="std-col-head">Rank</div>', unsafe_allow_html=True)
         h_move.markdown('<div class="std-col-head">Move</div>', unsafe_allow_html=True)
-        h_team.markdown('<div class="std-col-head">Tim & Manajer (Klik detail)</div>', unsafe_allow_html=True)
+        h_team.markdown('<div class="std-col-head">Tim (Klik detail)</div>', unsafe_allow_html=True)
+        h_mgr.markdown('<div class="std-col-head">Manajer</div>', unsafe_allow_html=True)
         h_gw.markdown('<div class="std-col-head">GW Pts</div>', unsafe_allow_html=True)
         h_tot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
         h_or.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
@@ -1119,16 +1120,17 @@ with tab1:
             else:
                 mv_html = f'<span class="move-chip flat">{html.escape(mv_str)}</span>'
 
-            c_rank, c_move, c_team, c_gw, c_tot, c_or, c_cap, c_chip, c_hits, c_val = st.columns(
-                [0.6, 0.7, 2.4, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
+            c_rank, c_move, c_team, c_mgr, c_gw, c_tot, c_or, c_cap, c_chip, c_hits, c_val = st.columns(
+                [0.6, 0.7, 1.5, 1.3, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
             )
 
             c_rank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{r_val}</span></div>', unsafe_allow_html=True)
             c_move.markdown(f'<div style="padding: 6px 0;">{mv_html}</div>', unsafe_allow_html=True)
 
-            btn_label = f"**{_md_escape(row['Team Name'])}**\n\n_{_md_escape(row['Manager'])}_"
+            btn_label = f"**{_md_escape(row['Team Name'])}**"
             if c_team.button(btn_label, key=f"mgrrow_{row['entry_id']}", help="Klik untuk membuka susunan squad & detail"):
                 show_manager_dialog(row, chips_data)
+            c_mgr.markdown(f'<div class="std-muted" style="padding: 10px 0; font-style: italic;">{html.escape(str(row["Manager"]))}</div>', unsafe_allow_html=True)
 
             c_gw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
             c_tot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
@@ -1252,12 +1254,13 @@ with tab_paid:
             )
         
         # Table Header
-        h_prank, h_porg, h_pteam, h_pgw, h_ptot, h_por, h_pcap, h_pchip, h_phits, h_pval = st.columns(
-            [0.7, 0.6, 2.4, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
+        h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_pchip, h_phits, h_pval = st.columns(
+            [0.7, 0.6, 1.5, 1.3, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
         )
         h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
         h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
-        h_pteam.markdown('<div class="std-col-head">Tim & Manajer (Klik detail)</div>', unsafe_allow_html=True)
+        h_pteam.markdown('<div class="std-col-head">Tim (Klik detail)</div>', unsafe_allow_html=True)
+        h_pmgr.markdown('<div class="std-col-head">Manajer</div>', unsafe_allow_html=True)
         h_pgw.markdown('<div class="std-col-head">GW Pts</div>', unsafe_allow_html=True)
         h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
         h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
@@ -1272,17 +1275,18 @@ with tab_paid:
             pr_val = int(row["Paid_Rank"])
             med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
             
-            c_prank, c_porg, c_pteam, c_pgw, c_ptot, c_por, c_pcap, c_pchip, c_phits, c_pval = st.columns(
-                [0.7, 0.6, 2.4, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
+            c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_pchip, c_phits, c_pval = st.columns(
+                [0.7, 0.6, 1.5, 1.3, 0.8, 0.9, 1.1, 1.6, 0.9, 0.7, 1.0]
             )
-            
+
             c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
             c_porg.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">#{row["Rank"]}</div>', unsafe_allow_html=True)
-            
-            btn_label = f"**{_md_escape(row['Team Name'])}**\n\n_{_md_escape(row['Manager'])}_"
+
+            btn_label = f"**{_md_escape(row['Team Name'])}**"
             if c_pteam.button(btn_label, key=f"paidmgr_{row['entry_id']}", help="Klik untuk membuka susunan squad & detail"):
                 show_manager_dialog(row, chips_data)
-                
+            c_pmgr.markdown(f'<div class="std-muted" style="padding: 10px 0; font-style: italic;">{html.escape(str(row["Manager"]))}</div>', unsafe_allow_html=True)
+
             c_pgw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
             c_ptot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
             
