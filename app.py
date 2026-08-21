@@ -627,11 +627,13 @@ st.markdown("""
         perspective: 400px;
     }
     .trophy-spin-3d {
-        width: 84px;
-        height: 102px;
         transform-style: preserve-3d;
         animation: trophySpin3d 4s linear infinite;
-        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.35));
+        filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    }
+    .trophy-emoji {
+        font-size: 64px;
+        line-height: 1;
     }
     @keyframes trophySpin3d {
         from { transform: rotateY(0deg); }
@@ -966,24 +968,7 @@ fetch_btn = st.sidebar.button("⚡ TARIK & ANALISIS DATA", type="primary", use_c
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div class="trophy-spin-wrap">
-    <div class="trophy-spin-3d">
-        <svg width="100%" height="100%" viewBox="0 0 90 110" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="trophyGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#fff2c9"/>
-                    <stop offset="45%" stop-color="#ffd700"/>
-                    <stop offset="100%" stop-color="#b8860b"/>
-                </linearGradient>
-            </defs>
-            <path d="M30 10 H60 V35 C60 50 50 58 45 58 C40 58 30 50 30 35 Z" fill="url(#trophyGold)" stroke="#8a6200" stroke-width="1"/>
-            <path d="M30 15 C15 15 15 40 30 40" fill="none" stroke="url(#trophyGold)" stroke-width="5" stroke-linecap="round"/>
-            <path d="M60 15 C75 15 75 40 60 40" fill="none" stroke="url(#trophyGold)" stroke-width="5" stroke-linecap="round"/>
-            <rect x="42" y="58" width="6" height="18" fill="url(#trophyGold)"/>
-            <path d="M25 76 H65 L60 88 H30 Z" fill="url(#trophyGold)" stroke="#8a6200" stroke-width="1"/>
-            <rect x="20" y="88" width="50" height="8" rx="2" fill="url(#trophyGold)" stroke="#8a6200" stroke-width="1"/>
-            <path d="M34 14 L34 40" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-    </div>
+    <div class="trophy-spin-3d trophy-emoji">🏆</div>
 </div>
 """, unsafe_allow_html=True)
 
