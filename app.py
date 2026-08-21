@@ -602,26 +602,19 @@ st.markdown("""
         font-weight: 700;
     }
 
-    div[class*="st-key-mgrrow_"] {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    div[class*="st-key-mgrrow_"], div[class*="st-key-paidmgr_"] {
         border-radius: 8px;
         transition: background 0.12s ease;
     }
-    div[class*="st-key-mgrrow_"]:hover { background: rgba(255, 255, 255, 0.035); }
-    div[class*="st-key-mgrrow_"] .stButton > button {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: #F5F7FA !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
-        padding: 6px 4px !important;
-        font-weight: 700 !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    div[class*="st-key-mgrrow_"]:hover, div[class*="st-key-paidmgr_"]:hover { background: rgba(255, 255, 255, 0.035); }
+    div[class*="st-key-mgrrow_"] button, div[class*="st-key-paidmgr_"] button {
+        padding: 6px 10px !important;
     }
-    div[class*="st-key-mgrrow_"] .stButton > button:hover {
-        color: #00FF87 !important;
-        text-decoration: underline;
+    div[class*="st-key-mgrrow_"] button p, div[class*="st-key-paidmgr_"] button p {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 0.85rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
