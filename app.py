@@ -19,6 +19,12 @@ from fpl_api import FPLApiClient
 from fpl_analytics import FPLMiniLeagueAnalyzer
 from exporter import FPLExporter
 
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+
 # Page Configuration
 st.set_page_config(
     page_title="FPL Masterclass | Premier League Intelligence",
@@ -765,6 +771,73 @@ _MD_SPECIAL = re.compile(r'([!"#$%&\'()*+,\-./:;<=>?@\[\\\]^_`{|}~])')
 def _md_escape(text):
     return _MD_SPECIAL.sub(r'\\\1', str(text))
 
+# ----------------- FUNNY GW RECAP (GEMINI) -----------------
+def _get_gemini_api_key():
+    try:
+        key = st.secrets.get("GEMINI_API_KEY")
+        if key:
+            return key
+    except Exception:
+        pass
+    return os.environ.get("GEMINI_API_KEY")
+
+def _build_gw_summary(standings_df, captaincy_df, selected_gw, league_name):
+    df = standings_df.sort_values(by="GW Points", ascending=False)
+    top = df.iloc[0]
+    bottom = df.iloc[-1]
+    avg_pts = df["GW Points"].mean()
+
+    def _mover(asc):
+        try:
+            moves = df["Move"].astype(str)
+            nums = moves.str.extract(r'([+-]?\d+)')[0].astype(float)
+            idx = nums.idxmin() if asc else nums.idxmax()
+            if pd.isna(nums.loc[idx]) or nums.loc[idx] == 0:
+                return None
+            return df.loc[idx]
+        except Exception:
+            return None
+
+    riser = _mover(asc=False)
+    faller = _mover(asc=True)
+
+    top_cap = captaincy_df.iloc[0] if captaincy_df is not None and not captaincy_df.empty else None
+    chips_used = df[df["Active Chip"].astype(str) != "-"]
+
+    lines = [
+        f"Liga: {league_name}, Gameweek {selected_gw}",
+        f"Total peserta: {len(df)} manajer",
+        f"Rata-rata poin GW ini: {avg_pts:.1f}",
+        f"Top skor GW: {top['Team Name']} ({top['Manager']}) dengan {top['GW Points']} poin",
+        f"Skor terjeblok GW ini: {bottom['Team Name']} ({bottom['Manager']}) cuma {bottom['GW Points']} poin",
+    ]
+    if riser is not None:
+        lines.append(f"Naik rank paling kencang: {riser['Team Name']} ({riser['Move']})")
+    if faller is not None:
+        lines.append(f"Turun rank paling parah: {faller['Team Name']} ({faller['Move']})")
+    if top_cap is not None:
+        lines.append(f"Kapten paling populer: {top_cap['Captain']}, dipilih {top_cap['% of League']}% manajer")
+    if not chips_used.empty:
+        chip_bits = [f"{r['Team Name']} pakai {r['Active Chip']}" for _, r in chips_used.iterrows()]
+        lines.append("Chip dipakai GW ini: " + "; ".join(chip_bits))
+    else:
+        lines.append("Tidak ada yang pakai chip GW ini.")
+
+    return "\n".join(lines)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def generate_gw_recap(_summary_text, league_id, selected_gw, api_key):
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    prompt = f"""Kamu adalah komentator Fantasy Premier League yang jenaka, gaya bahasa santai ala nongkrong warung kopi / grup WhatsApp Indonesia, suka nyeletuk dan roasting tapi tetap ramah (bukan menghina).
+
+Berikut data gameweek liga mini FPL ini:
+{_summary_text}
+
+Tulis rekap gameweek ini dalam Bahasa Indonesia, sekitar 120-180 kata, dengan gaya lucu/santai, boleh pakai emoji secukupnya, roasting yang absen chip atau yang skor jeblok tapi tetap suportif. Jangan pakai heading atau bullet point, tulis sebagai narasi mengalir 2-3 paragraf pendek."""
+    response = model.generate_content(prompt)
+    return response.text.strip()
+
 # ----------------- MANAGER DETAIL CARD (DIALOG) -----------------
 @st.dialog("📋 Detail Manajer", width="large")
 def show_manager_dialog(row, chips_df):
@@ -1067,7 +1140,41 @@ if not standings_df.empty:
         </div>
         """, unsafe_allow_html=True)
 
-st.markdown("<div style='margin-bottom: 22px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+
+# ----------------- FUNNY GW RECAP PANEL -----------------
+if not standings_df.empty:
+    with st.container(border=True):
+        rc1, rc2 = st.columns([5, 1.4])
+        with rc1:
+            st.markdown(f"##### 🎙️ Rekap Kocak Gameweek {selected_gw}")
+            st.caption("Ringkasan gameweek versi santai & jenaka, ditulis otomatis oleh AI (Gemini).")
+        with rc2:
+            gen_clicked = st.button("✨ Buat Rekap", key="btn_gw_recap", use_container_width=True)
+
+        gemini_key = _get_gemini_api_key()
+        if not GEMINI_AVAILABLE:
+            st.info("Fitur ini butuh paket `google-generativeai` (sudah ditambahkan ke requirements.txt — tinggal redeploy/restart).")
+        elif not gemini_key:
+            st.info("Belum ada `GEMINI_API_KEY`. Ambil API key gratis di [aistudio.google.com](https://aistudio.google.com/apikey), lalu tambahkan sebagai secret bernama `GEMINI_API_KEY`.")
+        elif gen_clicked:
+            summary_text = _build_gw_summary(standings_df, data.get("captaincy_df", pd.DataFrame()), selected_gw, league_name)
+            with st.spinner("🤖 AI lagi mikirin bahan bercandaan..."):
+                try:
+                    recap_text = generate_gw_recap(summary_text, league_id_input, selected_gw, gemini_key)
+                    st.session_state[f"gw_recap_{league_id_input}_{selected_gw}"] = recap_text
+                except Exception as e:
+                    st.error(f"⚠️ Gagal generate rekap: {e}")
+
+        cached_recap = st.session_state.get(f"gw_recap_{league_id_input}_{selected_gw}")
+        if cached_recap:
+            st.markdown(f"""
+            <div style="background: rgba(0,255,135,0.06); border: 1px solid rgba(0,255,135,0.25); border-radius: 12px; padding: 16px 18px; margin-top: 10px; line-height: 1.6; color: #E8ECEF; font-size: 0.94rem;">
+                {html.escape(cached_recap).replace(chr(10), "<br><br>")}
+            </div>
+            """, unsafe_allow_html=True)
+
+st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
 # ----------------- ELEGANT TABS -----------------
 tab1, tab_paid, tab2, tab3, tab4, tab5 = st.tabs([

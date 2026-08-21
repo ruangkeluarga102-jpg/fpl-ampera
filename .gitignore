@@ -12,3 +12,6 @@ fpl_data.db
 
 # Local secrets - never commit real credentials
 .streamlit/secrets.toml
+
+# Local dev server logs
+*.log
