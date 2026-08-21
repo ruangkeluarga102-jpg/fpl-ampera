@@ -627,40 +627,24 @@ st.markdown("""
         font-size: 0.85rem !important;
     }
 
-    /* Premier League Trophy Photo Card — Sidebar Decoration */
-    .trophy-photo-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 12px 10px;
-        background: linear-gradient(135deg, rgba(55, 0, 60, 0.45) 0%, rgba(15, 20, 30, 0.7) 100%);
-        border: 1px solid rgba(0, 255, 135, 0.3);
-        clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    /* Premier League Trophy Photo — Clean Full Width (No Frame) */
+    .trophy-clean-wrap {
+        width: 100%;
         margin: 12px 0 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
     }
-    .trophy-photo-img {
-        width: 140px;
-        height: 140px;
-        object-fit: cover;
-        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-        border: 1.5px solid rgba(255, 215, 0, 0.65);
-        box-shadow: 0 0 22px rgba(255, 215, 0, 0.35);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    .trophy-clean-img {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        display: block;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+        transition: transform 0.2s ease;
     }
-    .trophy-photo-img:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 28px rgba(0, 255, 135, 0.55);
-    }
-    .trophy-caption {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 1.2px;
-        color: #FFE27A;
-        margin-top: 10px;
-        text-align: center;
+    .trophy-clean-img:hover {
+        transform: scale(1.02);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -991,9 +975,8 @@ fetch_btn = st.sidebar.button("⚡ TARIK & ANALISIS DATA", type="primary", use_c
 st.sidebar.markdown("---")
 if TROPHY_IMG_B64:
     st.sidebar.markdown(f"""
-    <div class="trophy-photo-card">
-        <img src="data:image/jpeg;base64,{TROPHY_IMG_B64}" class="trophy-photo-img" alt="Premier League Trophy" />
-        <div class="trophy-caption">PREMIER LEAGUE TROPHY</div>
+    <div class="trophy-clean-wrap">
+        <img src="data:image/jpeg;base64,{TROPHY_IMG_B64}" class="trophy-clean-img" alt="Premier League Trophy" />
     </div>
     """, unsafe_allow_html=True)
 
