@@ -197,6 +197,7 @@ st.markdown("""
         letter-spacing: -0.3px;
         background: linear-gradient(90deg, #FFFFFF 0%, #00FF87 70%, #02EFFF 100%);
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         line-height: 1.2;
     }
@@ -247,6 +248,7 @@ st.markdown("""
     /* Top-Right 3-Dots Kebab Popover Button */
     div[data-testid="stPopover"] > button {
         background: rgba(255, 255, 255, 0.04) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
         backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(0, 255, 135, 0.35) !important;
         border-radius: 14px !important;
@@ -309,6 +311,7 @@ st.markdown("""
         font-weight: 800;
         background: linear-gradient(90deg, #FFFFFF 0%, #00FF87 60%, #02EFFF 100%);
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0;
         letter-spacing: -0.5px;
@@ -330,6 +333,7 @@ st.markdown("""
     }
     .hero-badge {
         background: rgba(255, 255, 255, 0.06);
+        -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.16);
         clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
@@ -351,6 +355,7 @@ st.markdown("""
     /* KPI Stat Cards - Sharp Chamfered Corners */
     .kpi-card {
         background: var(--card-bg);
+        -webkit-backdrop-filter: blur(14px);
         backdrop-filter: blur(14px);
         clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
         padding: 20px 22px;
@@ -403,6 +408,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px !important;
         background: rgba(15, 20, 30, 0.85) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
         backdrop-filter: blur(16px) !important;
         padding: 6px !important;
         border-radius: 0px !important;
