@@ -774,6 +774,11 @@ def show_manager_dialog(row, chips_df):
         <div>
             <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.3rem; color: #F5F7FA;">{html.escape(str(row["Team Name"]))}</div>
             <div style="color: var(--text-muted); font-size: 0.9rem;">{html.escape(str(row["Manager"]))}</div>
+            <div style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
+                🆔 Team ID: <span style="font-family: ui-monospace, monospace; color: #02EFFF;">{html.escape(str(row.get("entry_id", "-")))}</span>
+                &nbsp;·&nbsp;
+                <a href="https://fantasy.premierleague.com/entry/{row.get('entry_id', '')}/history" target="_blank" style="color: #02EFFF; text-decoration: none;">Lihat di FPL ↗</a>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
