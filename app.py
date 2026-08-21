@@ -20,7 +20,7 @@ from fpl_analytics import FPLMiniLeagueAnalyzer
 from exporter import FPLExporter
 
 try:
-    import google.generativeai as genai
+    from google import genai
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -827,15 +827,14 @@ def _build_gw_summary(standings_df, captaincy_df, selected_gw, league_name):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def generate_gw_recap(_summary_text, league_id, selected_gw, api_key):
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    client = genai.Client(api_key=api_key)
     prompt = f"""Kamu adalah komentator Fantasy Premier League yang jenaka, gaya bahasa santai ala nongkrong warung kopi / grup WhatsApp Indonesia, suka nyeletuk dan roasting tapi tetap ramah (bukan menghina).
 
 Berikut data gameweek liga mini FPL ini:
 {_summary_text}
 
 Tulis rekap gameweek ini dalam Bahasa Indonesia, sekitar 120-180 kata, dengan gaya lucu/santai, boleh pakai emoji secukupnya, roasting yang absen chip atau yang skor jeblok tapi tetap suportif. Jangan pakai heading atau bullet point, tulis sebagai narasi mengalir 2-3 paragraf pendek."""
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
     return response.text.strip()
 
 # ----------------- MANAGER DETAIL CARD (DIALOG) -----------------
