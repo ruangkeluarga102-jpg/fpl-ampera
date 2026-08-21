@@ -9,6 +9,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
+import base64
 import html
 import json
 import os
@@ -18,6 +19,14 @@ import sqlite3
 from fpl_api import FPLApiClient
 from fpl_analytics import FPLMiniLeagueAnalyzer
 from exporter import FPLExporter
+
+def get_image_base64(path):
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return ""
+
+TROPHY_IMG_B64 = get_image_base64("assets/pl_trophy.jpg")
 
 try:
     from google import genai
@@ -618,26 +627,40 @@ st.markdown("""
         font-size: 0.85rem !important;
     }
 
-    /* Spinning trophy — sidebar decoration */
-    .trophy-spin-wrap {
+    /* Premier League Trophy Photo Card — Sidebar Decoration */
+    .trophy-photo-card {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        padding: 10px 0 16px;
-        perspective: 400px;
+        justify-content: center;
+        padding: 12px 10px;
+        background: linear-gradient(135deg, rgba(55, 0, 60, 0.45) 0%, rgba(15, 20, 30, 0.7) 100%);
+        border: 1px solid rgba(0, 255, 135, 0.3);
+        clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        margin: 12px 0 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
-    .trophy-spin-3d {
-        transform-style: preserve-3d;
-        animation: trophySpin3d 4s linear infinite;
-        filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    .trophy-photo-img {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+        border: 1.5px solid rgba(255, 215, 0, 0.65);
+        box-shadow: 0 0 22px rgba(255, 215, 0, 0.35);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .trophy-emoji {
-        font-size: 64px;
-        line-height: 1;
+    .trophy-photo-img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 28px rgba(0, 255, 135, 0.55);
     }
-    @keyframes trophySpin3d {
-        from { transform: rotateY(0deg); }
-        to { transform: rotateY(360deg); }
+    .trophy-caption {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        color: #FFE27A;
+        margin-top: 10px;
+        text-align: center;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -966,11 +989,13 @@ st.sidebar.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_htm
 fetch_btn = st.sidebar.button("⚡ TARIK & ANALISIS DATA", type="primary", use_container_width=True)
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("""
-<div class="trophy-spin-wrap">
-    <div class="trophy-spin-3d trophy-emoji">🏆</div>
-</div>
-""", unsafe_allow_html=True)
+if TROPHY_IMG_B64:
+    st.sidebar.markdown(f"""
+    <div class="trophy-photo-card">
+        <img src="data:image/jpeg;base64,{TROPHY_IMG_B64}" class="trophy-photo-img" alt="Premier League Trophy" />
+        <div class="trophy-caption">PREMIER LEAGUE TROPHY</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ----------------- MAIN APP EXECUTION -----------------
 if fetch_btn:
