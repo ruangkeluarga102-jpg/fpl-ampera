@@ -1144,11 +1144,12 @@ st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 # ----------------- FUNNY GW RECAP PANEL -----------------
 if not standings_df.empty:
     with st.container(border=True):
-        rc1, rc2 = st.columns([5, 1.4])
+        rc1, rc2 = st.columns([4.2, 2.2])
         with rc1:
             st.markdown(f"##### 🎙️ Rekap Gameweek {selected_gw}")
             st.caption("Analisa terstruktur gameweek ini versi pundit kenamaan")
         with rc2:
+            st.markdown('<style>div[class*="st-key-btn_gw_recap"] button p { white-space: nowrap; }</style>', unsafe_allow_html=True)
             gen_clicked = st.button("✨ Simak Analisa", key="btn_gw_recap", use_container_width=True)
 
         gemini_key = _get_gemini_api_key()
