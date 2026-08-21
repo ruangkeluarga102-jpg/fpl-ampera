@@ -1149,7 +1149,7 @@ if not standings_df.empty:
             st.markdown(f"##### 🎙️ Rekap Gameweek {selected_gw}")
             st.caption("Analisa terstruktur gameweek ini versi pundit kenamaan")
         with rc2:
-            gen_clicked = st.button("✨ Buat Rekap", key="btn_gw_recap", use_container_width=True)
+            gen_clicked = st.button("✨ Simak Analisa", key="btn_gw_recap", use_container_width=True)
 
         gemini_key = _get_gemini_api_key()
         if not GEMINI_AVAILABLE:
