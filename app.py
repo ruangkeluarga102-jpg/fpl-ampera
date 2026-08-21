@@ -995,7 +995,7 @@ st.markdown(f"""
         {SVG_ICONS['fpl_crest']}
         <div>
             <h1 class="hero-title">{league_name}</h1>
-            <div class="hero-subtitle">Premier League Intelligence & Live Analytics Suite</div>
+            <div class="hero-subtitle">Premier League transparency & Live Analytics</div>
         </div>
     </div>
     <div class="hero-badge-container">
