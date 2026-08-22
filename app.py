@@ -509,6 +509,17 @@ st.markdown("""
         font-weight: 600;
         margin-top: 2px;
     }
+    .player-pts {
+        font-family: 'Space Grotesk', sans-serif;
+        color: #00FF87;
+        background: rgba(0, 255, 135, 0.12);
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 0.72rem;
+        margin-top: 4px;
+        padding: 1px 8px;
+        display: inline-block;
+    }
     .badge-c {
         position: absolute;
         top: -8px;
@@ -773,11 +784,15 @@ def render_pitch_html(squad_items):
         jersey_svg = SVG_ICONS.get(f"jersey_{pos.lower()}", "") if pos else ""
         opacity_style = ' style="opacity: 0.88;"' if bench_card else ''
         team_suffix = " (B)" if bench_card else f" • £{p.get('now_cost', 0):.1f}m"
+        mult = p.get("multiplier", 1) or 1
+        pts_total = p.get("event_points_total", p.get("event_points", 0))
+        mult_tag = f' <span style="opacity:0.75; font-size:0.6rem;">(×{mult})</span>' if mult > 1 else ''
         card = f'<div class="player-card{cap_class}"{opacity_style}>'
         card += cap_html
         card += f'<div style="display: flex; justify-content: center; margin-bottom: 2px;">{jersey_svg}</div>'
         card += f'<div class="player-name">{p["web_name"]}</div>'
         card += f'<div class="player-team">{p["team_short"]}{team_suffix}</div>'
+        card += f'<div class="player-pts">{pts_total} pts{mult_tag}</div>'
         card += '</div>'
         return card
 

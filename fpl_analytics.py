@@ -73,6 +73,17 @@ class FPLMiniLeagueAnalyzer:
                 "history_df": pd.DataFrame()
             }
 
+        # Live per-player points for this gameweek (single call, shared across all managers)
+        live_points_map = {}
+        try:
+            live_data = self.api.get_live_event(gameweek)
+            live_points_map = {
+                el["id"]: el.get("stats", {}).get("total_points", 0)
+                for el in live_data.get("elements", [])
+            }
+        except Exception:
+            pass
+
         # Multi-threaded fetching for manager picks and histories
         manager_picks_map = {}
         manager_history_map = {}
@@ -141,13 +152,16 @@ class FPLMiniLeagueAnalyzer:
                 multiplier = p.get("multiplier", 1)
 
                 p_info = self.get_player_info(elem_id)
+                gw_points = live_points_map.get(elem_id, 0)
                 squad_elements.append({
                     **p_info,
                     "is_captain": is_cap,
                     "is_vice_captain": is_vc,
                     "position_slot": pos,
                     "multiplier": multiplier,
-                    "is_starting": pos <= 11
+                    "is_starting": pos <= 11,
+                    "event_points": gw_points,
+                    "event_points_total": gw_points * multiplier
                 })
 
                 if is_cap:
