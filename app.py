@@ -963,6 +963,18 @@ def show_manager_dialog(row, chips_df):
     if active_chip and active_chip != "-":
         st.markdown(f'<span class="std-chip-tag">🃏 Chip aktif GW ini: {html.escape(str(active_chip))}</span>', unsafe_allow_html=True)
 
+    gw_transfers = row.get("gw_transfers", [])
+    if gw_transfers:
+        st.markdown("##### 🔄 Transfer GW Ini")
+        for t in gw_transfers:
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.88rem;">
+                <span style="color: #ff6b85;">🔴 {html.escape(t['out_name'])} <span class="std-muted">({t['out_team']} · £{t['out_cost']:.1f}m)</span></span>
+                <span style="color: var(--text-muted);">→</span>
+                <span style="color: #00FF87;">🟢 {html.escape(t['in_name'])} <span class="std-muted">({t['in_team']} · £{t['in_cost']:.1f}m)</span></span>
+            </div>
+            """, unsafe_allow_html=True)
+
     st.markdown("---")
     squad = row.get("squad", [])
     if squad:

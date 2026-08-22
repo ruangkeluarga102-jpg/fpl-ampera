@@ -84,14 +84,16 @@ class FPLMiniLeagueAnalyzer:
         except Exception:
             pass
 
-        # Multi-threaded fetching for manager picks and histories
+        # Multi-threaded fetching for manager picks, histories, and transfers
         manager_picks_map = {}
         manager_history_map = {}
+        manager_transfers_map = {}
 
         def fetch_manager_details(result):
             entry_id = result["entry"]
             picks = {}
             history = {}
+            transfers = []
             try:
                 picks = self.api.get_manager_picks(entry_id, gameweek)
             except Exception:
@@ -100,15 +102,20 @@ class FPLMiniLeagueAnalyzer:
                 history = self.api.get_manager_history(entry_id)
             except Exception:
                 pass
-            return entry_id, picks, history
+            try:
+                transfers = self.api.get_manager_transfers(entry_id)
+            except Exception:
+                pass
+            return entry_id, picks, history, transfers
 
         with ThreadPoolExecutor(max_workers=8) as executor:
             futures = [executor.submit(fetch_manager_details, r) for r in standings_results]
             completed = 0
             for future in futures:
-                entry_id, picks, history = future.result()
+                entry_id, picks, history, transfers = future.result()
                 manager_picks_map[entry_id] = picks
                 manager_history_map[entry_id] = history
+                manager_transfers_map[entry_id] = transfers
                 completed += 1
                 if progress_callback:
                     progress_callback(completed, total_managers)
@@ -123,10 +130,27 @@ class FPLMiniLeagueAnalyzer:
             entry_id = item["entry"]
             picks_data = manager_picks_map.get(entry_id, {})
             history_data = manager_history_map.get(entry_id, {})
+            all_transfers = manager_transfers_map.get(entry_id, [])
 
             picks = picks_data.get("picks", [])
             entry_history = picks_data.get("entry_history", {})
             active_chip = picks_data.get("active_chip", None)
+
+            # Transfers made specifically for this gameweek (in/out player names)
+            gw_transfers = []
+            for t in all_transfers:
+                if t.get("event") != gameweek:
+                    continue
+                p_out = self.get_player_info(t.get("element_out"))
+                p_in = self.get_player_info(t.get("element_in"))
+                gw_transfers.append({
+                    "out_name": p_out["web_name"],
+                    "out_team": p_out["team_short"],
+                    "out_cost": t.get("element_out_cost", 0) / 10.0,
+                    "in_name": p_in["web_name"],
+                    "in_team": p_in["team_short"],
+                    "in_cost": t.get("element_in_cost", 0) / 10.0,
+                })
 
             # Determine rank movement
             rank = item.get("rank", 0)
@@ -247,7 +271,8 @@ class FPLMiniLeagueAnalyzer:
                 "Team Value (£m)": entry_history.get("value", 0) / 10.0,
                 "Bank (£m)": entry_history.get("bank", 0) / 10.0,
                 "entry_id": entry_id,
-                "squad": squad_elements
+                "squad": squad_elements,
+                "gw_transfers": gw_transfers
             })
 
         # Build DataFrames
