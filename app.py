@@ -662,6 +662,14 @@ st.markdown("""
         font-weight: 700;
         white-space: nowrap;
     }
+    /* Streamlit columns don't shrink below their content's intrinsic width by
+       default (flexbox min-width:auto), which lets one wide cell push every
+       column after it out of its ratio-assigned space. Forcing min-width:0
+       lets nowrap+ellipsis on the inner divs actually clip as intended. */
+    div[data-testid="column"] {
+        min-width: 0 !important;
+    }
+    .std-chip-tag { white-space: nowrap; }
 
     div[class*="st-key-mgrrow_"], div[class*="st-key-paidmgr_"] {
         border-radius: 8px;
@@ -1302,7 +1310,7 @@ with tab1:
     if not display_df.empty:
         # Table Header
         h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_chip, h_hits, h_val = st.columns(
-            [0.65, 0.75, 2.0, 1.8, 0.7, 0.8, 0.9, 1.4, 0.8, 0.6, 0.8]
+            [0.6, 0.7, 1.9, 1.7, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
         )
         h_rank.markdown('<div class="std-col-head">Rank</div>', unsafe_allow_html=True)
         h_move.markdown('<div class="std-col-head">Move</div>', unsafe_allow_html=True)
@@ -1331,7 +1339,7 @@ with tab1:
                 mv_html = f'<span class="move-chip flat">{html.escape(mv_str)}</span>'
 
             c_rank, c_move, c_team, c_mgr, c_gw, c_tot, c_or, c_cap, c_chip, c_hits, c_val = st.columns(
-                [0.65, 0.75, 2.0, 1.8, 0.7, 0.8, 0.9, 1.4, 0.8, 0.6, 0.8]
+                [0.6, 0.7, 1.9, 1.7, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
             )
 
             c_rank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{r_val}</span></div>', unsafe_allow_html=True)
@@ -1363,7 +1371,7 @@ with tab1:
             else:
                 c_hits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
 
-            c_val.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
+            c_val.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
     else:
         st.info("Belum ada data klasemen untuk ditampilkan.")
 
@@ -1465,7 +1473,7 @@ with tab_paid:
         
         # Table Header
         h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_pchip, h_phits, h_pval = st.columns(
-            [0.95, 0.85, 1.85, 1.65, 0.7, 0.8, 0.9, 1.4, 0.8, 0.6, 0.8]
+            [0.9, 0.8, 1.8, 1.6, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
         )
         h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
         h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
@@ -1486,7 +1494,7 @@ with tab_paid:
             med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
             
             c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_pchip, c_phits, c_pval = st.columns(
-                [0.95, 0.85, 1.85, 1.65, 0.7, 0.8, 0.9, 1.4, 0.8, 0.6, 0.8]
+                [0.9, 0.8, 1.8, 1.6, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
             )
 
             c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
@@ -1518,7 +1526,7 @@ with tab_paid:
             else:
                 c_phits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
                 
-            c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
+            c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
 
 # ================= TAB 2: TRENDS & CHARTS =================
 with tab2:
