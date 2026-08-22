@@ -620,12 +620,15 @@ st.markdown("""
     div[class*="st-key-mgrrow_"] button, div[class*="st-key-paidmgr_"] button {
         padding: 6px 10px !important;
     }
-    div[class*="st-key-mgrrow_"] button p, div[class*="st-key-paidmgr_"] button p {
+    div[class*="st-key-mgrrow_"] button p, div[class*="st-key-paidmgr_"] button p,
+    div[class*="st-key-capname_"] button p, div[class*="st-key-capowner_"] button p {
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         font-size: 0.85rem !important;
     }
+    div[class*="st-key-capname_"]:hover, div[class*="st-key-capowner_"]:hover { background: rgba(255, 255, 255, 0.035); border-radius: 8px; }
+    div[class*="st-key-capname_"] button { text-align: left !important; justify-content: flex-start !important; }
 
     /* Premier League Trophy Photo — Clean Full Width (No Frame) */
     .trophy-clean-wrap {
@@ -904,6 +907,29 @@ def show_manager_dialog(row, chips_df):
         st.markdown(render_pitch_html(squad), unsafe_allow_html=True)
     else:
         st.info("Susunan pemain belum tersedia untuk gameweek ini.")
+
+# ----------------- CAPTAIN OWNERS CARD (DIALOG) -----------------
+@st.dialog("👑 Pemilih Kapten Ini", width="large")
+def show_captain_owners_dialog(captain_name, standings_df):
+    pickers = standings_df[standings_df["Captain"] == captain_name].sort_values(by="Total Points", ascending=False)
+    st.markdown(f"""
+    <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.15rem; color: #F5F7FA; margin-bottom: 4px;">
+        {html.escape(str(captain_name))}
+    </div>
+    <div style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 14px;">
+        Dipilih sebagai kapten oleh {len(pickers)} manajer
+    </div>
+    """, unsafe_allow_html=True)
+
+    for _, prow in pickers.iterrows():
+        r_val = int(prow["Rank"])
+        med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(r_val, "")
+        cols = st.columns([0.5, 3, 2.4, 1, 1])
+        cols[0].markdown(f'<span class="rank-badge {med_cls}" style="width: 26px; height: 26px; font-size: 0.72rem;">{r_val}</span>', unsafe_allow_html=True)
+        cols[1].markdown(f'<div style="padding: 6px 0; font-weight: 700; color: #F5F7FA;">🛡️ {html.escape(str(prow["Team Name"]))}</div>', unsafe_allow_html=True)
+        cols[2].markdown(f'<div class="std-muted" style="padding: 6px 0; font-style: italic;">{html.escape(str(prow["Manager"]))}</div>', unsafe_allow_html=True)
+        cols[3].markdown(f'<div class="std-points" style="padding: 6px 0;">{prow["GW Points"]}</div>', unsafe_allow_html=True)
+        cols[4].markdown(f'<div class="std-total" style="padding: 6px 0;">{prow["Total Points"]}</div>', unsafe_allow_html=True)
 
 # ----------------- SIDEBAR CONTROLS -----------------
 st.sidebar.markdown(f"""
@@ -1528,15 +1554,18 @@ with tab3:
     with col_cap:
         st.markdown("#### 🎯 Distribusi Pilihan Kapten")
         if not captaincy_df.empty:
-            st.dataframe(
-                captaincy_df, 
-                use_container_width=True, 
-                hide_index=True,
-                column_config={
-                    "Count": st.column_config.NumberColumn("Jumlah Manajer", format="%d"),
-                    "% of League": st.column_config.NumberColumn("% di Liga", format="%.1f%%")
-                }
-            )
+            st.caption("👆 Klik nama kapten untuk lihat siapa saja yang memilihnya.")
+            hc1, hc2, hc3 = st.columns([2.4, 1.3, 1])
+            hc1.markdown('<div class="std-col-head">Captain</div>', unsafe_allow_html=True)
+            hc2.markdown('<div class="std-col-head">Jumlah Manajer</div>', unsafe_allow_html=True)
+            hc3.markdown('<div class="std-col-head">% di Liga</div>', unsafe_allow_html=True)
+            for _, crow in captaincy_df.iterrows():
+                cc1, cc2, cc3 = st.columns([2.4, 1.3, 1])
+                cap_label = f"👑 {_md_escape(crow['Captain'])}"
+                if cc1.button(cap_label, key=f"capname_{crow['Captain']}", use_container_width=True):
+                    show_captain_owners_dialog(crow["Captain"], standings_df)
+                cc2.markdown(f'<div style="padding: 10px 0;">{int(crow["Count"])} manajer</div>', unsafe_allow_html=True)
+                cc3.markdown(f'<div class="std-points" style="padding: 10px 0;">{crow["% of League"]:.1f}%</div>', unsafe_allow_html=True)
     with col_pie:
         if not captaincy_df.empty:
             fig_cap = px.pie(
