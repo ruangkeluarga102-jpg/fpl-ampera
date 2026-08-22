@@ -154,7 +154,7 @@ SVG_ICONS = {
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=Patrick+Hand&display=swap" rel="stylesheet">
 
 <style>
     :root {
@@ -458,99 +458,139 @@ st.markdown("""
     }
 
     /* Pitch Card Visualizer - Sharp Tactical Hexagonal Style */
+    /* ---- Tactics board: chalk-on-chalkboard theme ---- */
     .pitch-container {
-        background: linear-gradient(180deg, #14441e 0%, #0d2e14 100%);
-        border: 2px solid #236932;
-        border-radius: 0px;
-        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
-        padding: 22px;
-        box-shadow: inset 0 0 50px rgba(0,0,0,0.45);
+        position: relative;
+        background:
+            radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.05) 0%, transparent 45%),
+            radial-gradient(ellipse at 75% 85%, rgba(255,255,255,0.035) 0%, transparent 45%),
+            repeating-linear-gradient(37deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 4px),
+            repeating-linear-gradient(-51deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 5px),
+            linear-gradient(160deg, #1d3324 0%, #16281c 55%, #0f1c14 100%);
+        border: 10px solid #6b4a30;
+        border-radius: 6px;
+        padding: 26px 22px 22px;
+        box-shadow: inset 0 0 70px rgba(0,0,0,0.55), 0 10px 26px rgba(0,0,0,0.4);
         margin: 15px 0;
         color: white;
+        overflow: hidden;
+    }
+    /* hand-drawn chalk pitch markings */
+    .pitch-container::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        pointer-events: none;
+    }
+    .pitch-container::after {
+        content: "";
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 90px; height: 90px;
+        margin: -45px 0 0 -45px;
+        border: 2px dashed rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        pointer-events: none;
     }
     .pitch-row {
+        position: relative;
+        z-index: 1;
         display: flex;
         justify-content: space-around;
         align-items: center;
         margin-bottom: 18px;
     }
     .player-card {
-        background: rgba(20, 26, 36, 0.96);
-        color: #FFFFFF;
-        border-radius: 0px;
-        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
-        padding: 8px 12px;
+        background: transparent;
+        color: #F4F1E8;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 4px 8px;
         text-align: center;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-        border: 1px solid rgba(255,255,255,0.12);
-        min-width: 96px;
+        min-width: 92px;
         font-size: 0.82rem;
         position: relative;
         transition: transform 0.15s ease;
     }
     .player-card:hover {
-        transform: scale(1.05);
-        border-color: #00FF87;
+        transform: scale(1.06) rotate(-1deg);
     }
-    .player-card-cap {
-        border: 1.5px solid #FFD700;
-        background: rgba(36, 30, 10, 0.96);
-        box-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
+    .player-card:hover .chalk-ring {
+        border-color: #fff6d8;
+        box-shadow: 0 0 10px rgba(255, 246, 216, 0.5);
+    }
+    .chalk-ring {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed rgba(255, 255, 255, 0.65);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.03);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .chalk-ring svg { width: 24px; height: 24px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.6)); }
+    .player-card-cap .chalk-ring {
+        border: 2.5px solid #ffd76b;
+        border-style: dashed;
+        box-shadow: 0 0 14px rgba(255, 215, 107, 0.55);
     }
     .player-name {
-        font-weight: 700;
+        font-family: 'Patrick Hand', cursive;
+        font-size: 1.08rem;
+        font-weight: 400;
+        letter-spacing: 0.2px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-shadow: 0 0 6px rgba(255,255,255,0.25);
     }
     .player-team {
-        color: #98A2B3;
-        font-size: 0.73rem;
-        font-weight: 600;
-        margin-top: 2px;
+        font-family: 'Patrick Hand', cursive;
+        color: #b8c4b4;
+        font-size: 0.82rem;
+        font-weight: 400;
+        margin-top: 0;
     }
     .player-pts {
-        font-family: 'Space Grotesk', sans-serif;
-        color: #00FF87;
-        background: rgba(0, 255, 135, 0.12);
+        font-family: 'Patrick Hand', cursive;
+        color: #baffce;
+        background: transparent;
+        border: 1.5px dashed rgba(186, 255, 206, 0.55);
         border-radius: 999px;
-        font-weight: 800;
-        font-size: 0.72rem;
+        font-weight: 400;
+        font-size: 0.82rem;
         margin-top: 4px;
-        padding: 1px 8px;
+        padding: 0px 9px;
         display: inline-block;
     }
-    .badge-c {
+    .badge-c, .badge-vc {
         position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #FFD700;
-        color: #000;
-        font-weight: 800;
-        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        width: 22px;
-        height: 22px;
-        font-size: 0.72rem;
+        top: -6px;
+        right: 6px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-family: 'Patrick Hand', cursive;
+        font-weight: 400;
+        font-size: 0.78rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        background: rgba(15, 28, 20, 0.85);
+    }
+    .badge-c {
+        border: 2px dashed #ffd76b;
+        color: #ffd76b;
     }
     .badge-vc {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #E2E8F0;
-        color: #1A202C;
-        font-weight: 800;
-        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        width: 22px;
-        height: 22px;
-        font-size: 0.68rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        border: 2px dashed #d8dee2;
+        color: #d8dee2;
     }
 
     /* Rank Badges - Sharp Hexagon Shield */
@@ -789,7 +829,7 @@ def render_pitch_html(squad_items):
         mult_tag = f' <span style="opacity:0.75; font-size:0.6rem;">(×{mult})</span>' if mult > 1 else ''
         card = f'<div class="player-card{cap_class}"{opacity_style}>'
         card += cap_html
-        card += f'<div style="display: flex; justify-content: center; margin-bottom: 2px;">{jersey_svg}</div>'
+        card += f'<div class="chalk-ring">{jersey_svg}</div>'
         card += f'<div class="player-name">{p["web_name"]}</div>'
         card += f'<div class="player-team">{p["team_short"]}{team_suffix}</div>'
         card += f'<div class="player-pts">{pts_total} pts{mult_tag}</div>'
