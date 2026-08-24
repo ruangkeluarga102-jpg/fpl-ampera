@@ -373,11 +373,15 @@ st.markdown("""
         -webkit-backdrop-filter: blur(14px);
         backdrop-filter: blur(14px);
         clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
-        padding: 20px 22px;
+        padding: 18px 20px;
         border: 1px solid var(--card-border);
         box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         position: relative;
+        min-height: 140px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .kpi-card:hover {
         transform: translateY(-3px);
@@ -388,7 +392,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     .kpi-label {
         font-size: 0.76rem;
@@ -399,11 +403,12 @@ st.markdown("""
     }
     .kpi-value {
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.65rem;
+        font-size: 1.55rem;
         font-weight: 800;
         color: #FFFFFF;
         margin: 0;
         line-height: 1.2;
+        word-break: break-word;
     }
     .kpi-subtext {
         font-size: 0.82rem;
@@ -1317,8 +1322,8 @@ if not standings_df.empty:
                     <span class="kpi-label">Top Kapten GW{selected_gw}</span>
                     {SVG_ICONS['crown']}
                 </div>
-                <div class="kpi-value" style="font-size: 1.22rem;">{winner['player']}</div>
-                <div class="kpi-subtext"><b>{winner['total_pts']} pts</b> • {winner['team']}</div>
+                <div class="kpi-value">{winner['team']}</div>
+                <div class="kpi-subtext"><b>{winner['total_pts']} pts</b> • {winner['player']}</div>
             </div>
             """, unsafe_allow_html=True)
         elif len(top_cap_managers) > 1:
@@ -1328,13 +1333,13 @@ if not standings_df.empty:
                 players_str += f" +{len(unique_cap_players)-2}"
 
             st.markdown(f"""
-            <div class="kpi-card kpi-accent-cyan" style="padding-bottom: 8px;">
+            <div class="kpi-card kpi-accent-cyan">
                 <div class="kpi-header">
                     <span class="kpi-label">Top Kapten GW{selected_gw}</span>
                     {SVG_ICONS['crown']}
                 </div>
-                <div class="kpi-value" style="font-size: 1.35rem; color: #02EFFF;">{max_cap_pts} <span style="font-size: 0.9rem; color: #8c9ba5;">pts</span></div>
-                <div class="kpi-subtext">👑 {players_str} • <b>{len(top_cap_managers)} Manajer</b></div>
+                <div class="kpi-value">{len(top_cap_managers)} Manajer</div>
+                <div class="kpi-subtext"><b>{max_cap_pts} pts</b> • {players_str}</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -1362,7 +1367,7 @@ if not standings_df.empty:
                     <span class="kpi-label">Top Kapten GW{selected_gw}</span>
                     {SVG_ICONS['crown']}
                 </div>
-                <div class="kpi-value" style="font-size: 1.25rem;">-</div>
+                <div class="kpi-value">-</div>
                 <div class="kpi-subtext">Belum ada data kapten</div>
             </div>
             """, unsafe_allow_html=True)
