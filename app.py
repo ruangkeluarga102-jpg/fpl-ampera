@@ -1217,13 +1217,62 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------- TOP METRIC CARDS -----------------
+# ----------------- QUICK TRANSFER FORMATTER -----------------
+def format_quick_transfers(row):
+    txs = row.get("gw_transfers", [])
+    if not txs:
+        return '<span class="std-muted">-</span>'
+    if len(txs) == 1:
+        t = txs[0]
+        return f'<span style="font-size:0.75rem; white-space:nowrap;"><span style="color:#00FF87; font-weight:600;">🟢{html.escape(t["in_name"])}</span> <span style="color:#ff6b85; font-weight:600;">🔴{html.escape(t["out_name"])}</span></span>'
+    else:
+        t_first = txs[0]
+        extra = len(txs) - 1
+        return f'<span style="font-size:0.75rem; white-space:nowrap;"><span style="color:#00FF87; font-weight:600;">🟢{html.escape(t_first["in_name"])}</span> <span style="color:#ff6b85; font-weight:600;">🔴{html.escape(t_first["out_name"])}</span> <span class="std-muted">(+{extra})</span></span>'
+
+# ----------------- TOP METRIC CARDS -----------------
 standings_df = data.get("standings_df", pd.DataFrame())
 if not standings_df.empty:
     leader = standings_df.iloc[0]
     top_gw_scorer = standings_df.sort_values(by="GW Points", ascending=False).iloc[0]
     avg_gw_pts = standings_df["GW Points"].mean()
-    cap_top = data["captaincy_df"].iloc[0]["Captain"] if not data["captaincy_df"].empty else "-"
-    cap_pct = data["captaincy_df"].iloc[0]["% of League"] if not data["captaincy_df"].empty else 0
+
+    # Calculate Top Captain Scorer(s)
+    cap_scores_list = []
+    for _, r in standings_df.iterrows():
+        squad = r.get("squad", [])
+        cap_player = next((p for p in squad if p.get("is_captain")), None)
+        if cap_player:
+            cap_base = cap_player.get("event_points", 0)
+            cap_mult = cap_player.get("multiplier", 2)
+            cap_pts = cap_player.get("event_points_total", cap_base * cap_mult)
+            cap_scores_list.append({
+                "manager": r["Manager"],
+                "team": r["Team Name"],
+                "entry_id": r["entry_id"],
+                "player": f"{cap_player['web_name']} ({cap_player['team_short']})",
+                "base_pts": cap_base,
+                "multiplier": cap_mult,
+                "total_pts": cap_pts
+            })
+        else:
+            cap_scores_list.append({
+                "manager": r["Manager"],
+                "team": r["Team Name"],
+                "entry_id": r["entry_id"],
+                "player": r.get("Captain", "-"),
+                "base_pts": 0,
+                "multiplier": 2,
+                "total_pts": 0
+            })
+
+    cap_scores_df = pd.DataFrame(cap_scores_list)
+    if not cap_scores_df.empty:
+        max_cap_pts = cap_scores_df["total_pts"].max()
+        top_cap_managers = cap_scores_df[cap_scores_df["total_pts"] == max_cap_pts].to_dict('records')
+    else:
+        max_cap_pts = 0
+        top_cap_managers = []
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -1260,16 +1309,63 @@ if not standings_df.empty:
         </div>
         """, unsafe_allow_html=True)
     with col4:
-        st.markdown(f"""
-        <div class="kpi-card kpi-accent-cyan">
-            <div class="kpi-header">
-                <span class="kpi-label">Top Captaincy</span>
-                {SVG_ICONS['crown']}
+        if len(top_cap_managers) == 1:
+            winner = top_cap_managers[0]
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-cyan">
+                <div class="kpi-header">
+                    <span class="kpi-label">Top Kapten GW{selected_gw}</span>
+                    {SVG_ICONS['crown']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.22rem;">{winner['player']}</div>
+                <div class="kpi-subtext"><b>{winner['total_pts']} pts</b> • {winner['team']}</div>
             </div>
-            <div class="kpi-value" style="font-size: 1.35rem;">{cap_top}</div>
-            <div class="kpi-subtext">Dipilih oleh <b>{cap_pct}%</b> manajer</div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        elif len(top_cap_managers) > 1:
+            unique_cap_players = list(dict.fromkeys(m['player'] for m in top_cap_managers))
+            players_str = ", ".join(unique_cap_players[:2])
+            if len(unique_cap_players) > 2:
+                players_str += f" +{len(unique_cap_players)-2}"
+
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-cyan" style="padding-bottom: 8px;">
+                <div class="kpi-header">
+                    <span class="kpi-label">Top Kapten GW{selected_gw}</span>
+                    {SVG_ICONS['crown']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.35rem; color: #02EFFF;">{max_cap_pts} <span style="font-size: 0.9rem; color: #8c9ba5;">pts</span></div>
+                <div class="kpi-subtext">👑 {players_str} • <b>{len(top_cap_managers)} Manajer</b></div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            with st.popover(f"👥 Lihat {len(top_cap_managers)} Manajer", use_container_width=True):
+                st.markdown(f"##### 👑 Top Kapten GW{selected_gw} ({max_cap_pts} pts)")
+                st.caption(f"Daftar {len(top_cap_managers)} manajer yang meraih poin kapten tertinggi pekan ini:")
+                for idx, m in enumerate(top_cap_managers, 1):
+                    mult_str = f"{m['base_pts']} pts × {m['multiplier']}" if m['base_pts'] > 0 else f"{m['total_pts']} pts"
+                    st.markdown(f"""
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(2, 239, 255, 0.2); border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <b style="color: #F5F7FA;">#{idx} {html.escape(m['team'])}</b> <span class="std-muted">({html.escape(m['manager'])})</span><br>
+                            <span style="font-size: 0.8rem; color: #02EFFF;">👑 {html.escape(m['player'])}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <b style="color: #00FF87; font-size: 1.05rem; font-family: Space Grotesk, sans-serif;">{m['total_pts']} pts</b><br>
+                            <span style="font-size: 0.72rem; color: #8c9ba5;">({mult_str})</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-cyan">
+                <div class="kpi-header">
+                    <span class="kpi-label">Top Kapten GW{selected_gw}</span>
+                    {SVG_ICONS['crown']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.25rem;">-</div>
+                <div class="kpi-subtext">Belum ada data kapten</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
@@ -1336,8 +1432,8 @@ with tab1:
 
     if not display_df.empty:
         # Table Header
-        h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_chip, h_hits, h_val = st.columns(
-            [0.6, 0.7, 1.9, 1.7, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
+        h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_tx, h_chip, h_hits, h_val = st.columns(
+            [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
         )
         h_rank.markdown('<div class="std-col-head">Rank</div>', unsafe_allow_html=True)
         h_move.markdown('<div class="std-col-head">Move</div>', unsafe_allow_html=True)
@@ -1347,6 +1443,7 @@ with tab1:
         h_tot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
         h_or.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
         h_cap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
+        h_tx.markdown('<div class="std-col-head">Transfer GW</div>', unsafe_allow_html=True)
         h_chip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
         h_hits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
         h_val.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
@@ -1365,8 +1462,8 @@ with tab1:
             else:
                 mv_html = f'<span class="move-chip flat">{html.escape(mv_str)}</span>'
 
-            c_rank, c_move, c_team, c_mgr, c_gw, c_tot, c_or, c_cap, c_chip, c_hits, c_val = st.columns(
-                [0.6, 0.7, 1.9, 1.7, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
+            c_rank, c_move, c_team, c_mgr, c_gw, c_tot, c_or, c_cap, c_tx, c_chip, c_hits, c_val = st.columns(
+                [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
             )
 
             c_rank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{r_val}</span></div>', unsafe_allow_html=True)
@@ -1385,6 +1482,9 @@ with tab1:
             c_or.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.8rem;">{or_fmt}</div>', unsafe_allow_html=True)
 
             c_cap.markdown(f'<div style="padding: 6px 0; font-size: 0.82rem; color: #E2E8F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Captain"]))}</div>', unsafe_allow_html=True)
+
+            # Quick Transfer Column
+            c_tx.markdown(f'<div style="padding: 8px 0;">{format_quick_transfers(row)}</div>', unsafe_allow_html=True)
 
             chip_val = str(row["Active Chip"])
             if chip_val and chip_val != "-":
@@ -1499,8 +1599,8 @@ with tab_paid:
             )
         
         # Table Header
-        h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_pchip, h_phits, h_pval = st.columns(
-            [0.9, 0.8, 1.8, 1.6, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
+        h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
+            [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
         )
         h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
         h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
@@ -1510,6 +1610,7 @@ with tab_paid:
         h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
         h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
         h_pcap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
+        h_ptx.markdown('<div class="std-col-head">Transfer GW</div>', unsafe_allow_html=True)
         h_pchip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
         h_phits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
         h_pval.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
@@ -1520,8 +1621,8 @@ with tab_paid:
             pr_val = int(row["Paid_Rank"])
             med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
             
-            c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_pchip, c_phits, c_pval = st.columns(
-                [0.9, 0.8, 1.8, 1.6, 0.7, 0.8, 0.9, 1.7, 0.7, 0.6, 0.8]
+            c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
+                [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
             )
 
             c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
@@ -1541,6 +1642,9 @@ with tab_paid:
             
             c_pcap.markdown(f'<div style="padding: 6px 0; font-size: 0.82rem; color: #E2E8F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Captain"]))}</div>', unsafe_allow_html=True)
             
+            # Quick Transfer Column
+            c_ptx.markdown(f'<div style="padding: 8px 0;">{format_quick_transfers(row)}</div>', unsafe_allow_html=True)
+
             chip_val = str(row["Active Chip"])
             if chip_val and chip_val != "-":
                 c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag">{html.escape(chip_val)}</span></div>', unsafe_allow_html=True)
