@@ -1252,18 +1252,17 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------- TOP METRIC CARDS -----------------
-# ----------------- QUICK TRANSFER FORMATTER -----------------
+# ----------------- QUICK TRANSFER FORMATTER (OPSI B) -----------------
 def format_quick_transfers(row):
     txs = row.get("gw_transfers", [])
-    if not txs:
-        return '<span class="std-muted">-</span>'
-    if len(txs) == 1:
-        t = txs[0]
-        return f'<span style="font-size:0.75rem; white-space:nowrap;"><span style="color:#00FF87; font-weight:600;">🟢{html.escape(t["in_name"])}</span> <span style="color:#ff6b85; font-weight:600;">🔴{html.escape(t["out_name"])}</span></span>'
+    count = len(txs)
+    if count == 0:
+        return '<div class="std-muted" style="padding: 6px 0;">0</div>'
+    hits = row.get("Transfer Cost", 0) or 0
+    if hits > 0:
+        return f'<div style="padding: 6px 0;"><span style="font-size: 0.78rem; font-weight: 700; color: #ff6b85; background: rgba(255,107,133,0.14); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,107,133,0.3); white-space: nowrap;">{count} Tx (-{hits})</span></div>'
     else:
-        t_first = txs[0]
-        extra = len(txs) - 1
-        return f'<span style="font-size:0.75rem; white-space:nowrap;"><span style="color:#00FF87; font-weight:600;">🟢{html.escape(t_first["in_name"])}</span> <span style="color:#ff6b85; font-weight:600;">🔴{html.escape(t_first["out_name"])}</span> <span class="std-muted">(+{extra})</span></span>'
+        return f'<div style="padding: 6px 0;"><span style="font-size: 0.78rem; font-weight: 700; color: #00FF87; background: rgba(0,255,135,0.12); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(0,255,135,0.3); white-space: nowrap;">{count} Tx</span></div>'
 
 # ----------------- TOP METRIC CARDS -----------------
 standings_df = data.get("standings_df", pd.DataFrame())
@@ -1478,7 +1477,7 @@ with tab1:
         h_tot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
         h_or.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
         h_cap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
-        h_tx.markdown('<div class="std-col-head">Transfer GW</div>', unsafe_allow_html=True)
+        h_tx.markdown('<div class="std-col-head">Transfer</div>', unsafe_allow_html=True)
         h_chip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
         h_hits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
         h_val.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
@@ -1645,7 +1644,7 @@ with tab_paid:
         h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
         h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
         h_pcap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
-        h_ptx.markdown('<div class="std-col-head">Transfer GW</div>', unsafe_allow_html=True)
+        h_ptx.markdown('<div class="std-col-head">Transfer</div>', unsafe_allow_html=True)
         h_pchip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
         h_phits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
         h_pval.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
