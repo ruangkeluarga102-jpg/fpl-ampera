@@ -38,12 +38,18 @@ class FPLExporter:
         captaincy_export = self.data.get("captaincy_df", pd.DataFrame()).copy()
         chips_export = self.data.get("chips_df", pd.DataFrame()).copy()
         history_export = self.data.get("history_df", pd.DataFrame()).copy()
+        transfers_export = self.data.get("transfers_df", pd.DataFrame()).copy()
 
         with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
             standings_export.to_excel(writer, sheet_name="Standings", index=False)
             ownership_export.to_excel(writer, sheet_name="Ownership_EO", index=False)
             captaincy_export.to_excel(writer, sheet_name="Captain_Picks", index=False)
             chips_export.to_excel(writer, sheet_name="Chip_Tracker", index=False)
+            if not transfers_export.empty:
+                cols_to_drop = [c for c in ["entry_id"] if c in transfers_export.columns]
+                if cols_to_drop:
+                    transfers_export = transfers_export.drop(columns=cols_to_drop)
+                transfers_export.to_excel(writer, sheet_name="Transfers_GW", index=False)
             if not history_export.empty:
                 history_export.to_excel(writer, sheet_name="GW_History", index=False)
 

@@ -965,13 +965,26 @@ def show_manager_dialog(row, chips_df):
 
     gw_transfers = row.get("gw_transfers", [])
     if gw_transfers:
-        st.markdown("##### 🔄 Transfer GW Ini")
+        st.markdown("##### 🔁 Aktivitas Transfer GW Ini")
         for t in gw_transfers:
+            pts_in = t.get('in_points', 0)
+            pts_out = t.get('out_points', 0)
+            net_pts = t.get('net_points', 0)
+            if net_pts > 0:
+                net_badge = f'<span style="color: #00FF87; font-weight: 700; font-family: Space Grotesk, sans-serif;">+{net_pts} pts ✨</span>'
+            elif net_pts < 0:
+                net_badge = f'<span style="color: #ff6b85; font-weight: 700; font-family: Space Grotesk, sans-serif;">{net_pts} pts 📉</span>'
+            else:
+                net_badge = f'<span style="color: var(--text-muted); font-weight: 700; font-family: Space Grotesk, sans-serif;">0 pts</span>'
+
             st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.88rem;">
-                <span style="color: #ff6b85;">🔴 {html.escape(t['out_name'])} <span class="std-muted">({t['out_team']} · £{t['out_cost']:.1f}m)</span></span>
-                <span style="color: var(--text-muted);">→</span>
-                <span style="color: #00FF87;">🟢 {html.escape(t['in_name'])} <span class="std-muted">({t['in_team']} · £{t['in_cost']:.1f}m)</span></span>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.88rem;">
+                    <span style="color: #ff6b85; font-weight: 700;">🔴 OUT:</span> {html.escape(t['out_name'])} <span class="std-muted">({t['out_team']} · £{t['out_cost']:.1f}m · <b style="color: #F5F7FA;">{pts_out} pts</b>)</span>
+                    <span style="color: var(--text-muted); margin: 0 6px;">➔</span>
+                    <span style="color: #00FF87; font-weight: 700;">🟢 IN:</span> {html.escape(t['in_name'])} <span class="std-muted">({t['in_team']} · £{t['in_cost']:.1f}m · <b style="color: #F5F7FA;">{pts_in} pts</b>)</span>
+                </div>
+                <div>{net_badge}</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1114,10 +1127,11 @@ with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
         ownership_df.to_excel(writer, sheet_name="Ownership_EO", index=False)
     if not captaincy_df.empty:
         captaincy_df.to_excel(writer, sheet_name="Captains", index=False)
-    if not chips_df.empty:
-        chips_df.to_excel(writer, sheet_name="Chips", index=False)
     if not history_df.empty:
         history_df.to_excel(writer, sheet_name="GW_History", index=False)
+    transfers_export_df = data.get("transfers_df", pd.DataFrame())
+    if not transfers_export_df.empty:
+        transfers_export_df.drop(columns=[c for c in ["entry_id"] if c in transfers_export_df.columns]).to_excel(writer, sheet_name="Transfers_GW", index=False)
 
 excel_data_bytes = excel_buffer.getvalue()
 csv_data_bytes = standings_df.drop(columns=[c for c in ["entry_id", "squad"] if c in standings_df.columns]).to_csv(index=False).encode('utf-8')
@@ -1295,9 +1309,10 @@ if not standings_df.empty:
 st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
 # ----------------- ELEGANT TABS -----------------
-tab1, tab_paid, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab_paid, tab_transfers, tab2, tab3, tab4, tab5 = st.tabs([
     "Klasemen Liga", 
     "Klasemen Iuran", 
+    "Bursa Transfer", 
     "Tren & Performa", 
     "Kapten & EO", 
     "Pelacak Chip", 
@@ -1539,6 +1554,213 @@ with tab_paid:
                 c_phits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
                 
             c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
+
+# ================= TAB: BURSA TRANSFER =================
+with tab_transfers:
+    st.markdown(f"### 🔁 Bursa Transfer Liga (Gameweek {selected_gw})")
+    st.caption("Pantau pergerakan jual-beli pemain seluruh manajer, radar pemain terlaris, dan analisis untung-rugi transfer di Gameweek ini.")
+
+    transfers_df = data.get("transfers_df", pd.DataFrame())
+    top_in_df = data.get("top_transfers_in_df", pd.DataFrame())
+    top_out_df = data.get("top_transfers_out_df", pd.DataFrame())
+
+    if transfers_df.empty:
+        st.info(f"💡 Tidak ada transfer pemain yang tercatat pada Gameweek {selected_gw} (atau belum ada data transfer untuk pekan ini).")
+    else:
+        # Transfer Market Summary Stats
+        total_tx = len(transfers_df)
+        total_hits_cost = standings_df["Transfer Cost"].sum() if not standings_df.empty else 0
+        
+        top_in_player = top_in_df.iloc[0]["Player"] if not top_in_df.empty else "-"
+        top_in_count = top_in_df.iloc[0]["Transfers IN"] if not top_in_df.empty else 0
+        
+        top_out_player = top_out_df.iloc[0]["Player"] if not top_out_df.empty else "-"
+        top_out_count = top_out_df.iloc[0]["Transfers OUT"] if not top_out_df.empty else 0
+
+        best_tx = transfers_df.iloc[0] if not transfers_df.empty else None
+
+        # 4 KPI Cards
+        tk1, tk2, tk3, tk4 = st.columns(4)
+        with tk1:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-green">
+                <div class="kpi-header">
+                    <span class="kpi-label">Paling Laris (Top IN)</span>
+                    <span style="color: #00FF87; font-weight: 800; font-size: 0.8rem;">🟢 IN</span>
+                </div>
+                <div class="kpi-value" style="font-size: 1.3rem;">{top_in_player}</div>
+                <div class="kpi-subtext">Dibeli oleh <b>{top_in_count}</b> manajer liga</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with tk2:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-pink">
+                <div class="kpi-header">
+                    <span class="kpi-label">Paling Dibuang (Top OUT)</span>
+                    <span style="color: #ff6b85; font-weight: 800; font-size: 0.8rem;">🔴 OUT</span>
+                </div>
+                <div class="kpi-value" style="font-size: 1.3rem;">{top_out_player}</div>
+                <div class="kpi-subtext">Dijual oleh <b>{top_out_count}</b> manajer liga</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with tk3:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-cyan">
+                <div class="kpi-header">
+                    <span class="kpi-label">Best Transfer GW{selected_gw}</span>
+                    <span style="color: #02EFFF; font-weight: 800; font-size: 0.8rem;">✨ TOP</span>
+                </div>
+                <div class="kpi-value" style="font-size: 1.25rem;">{best_tx['Player In'] if best_tx is not None else '-'}</div>
+                <div class="kpi-subtext">{best_tx['Manager'] if best_tx is not None else '-'} (<b>+{best_tx['Net Gain']} pts</b>)</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with tk4:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-purple">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Aktivitas Liga</span>
+                    {SVG_ICONS['lightning']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.3rem;">{total_tx} <span style="font-size: 0.9rem; color: #8c9ba5;">transfer</span></div>
+                <div class="kpi-subtext">Total Hits Liga: <b>-{total_hits_cost} pts</b></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-bottom: 22px;'></div>", unsafe_allow_html=True)
+
+        # Charts Row: Top IN vs Top OUT
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            st.markdown("##### 🟢 Pemain Paling Banyak Dibeli (Top Transfers IN)")
+            if not top_in_df.empty:
+                fig_in = px.bar(
+                    top_in_df.head(8),
+                    x="Transfers IN",
+                    y="Player",
+                    orientation="h",
+                    text="Transfers IN",
+                    color="Transfers IN",
+                    color_continuous_scale=[[0, "#004d28"], [1, "#00FF87"]],
+                    template="plotly_dark"
+                )
+                fig_in.update_layout(
+                    yaxis=dict(autorange="reversed"),
+                    showlegend=False,
+                    coloraxis_showscale=False,
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    margin=dict(l=10, r=20, t=10, b=10),
+                    height=280
+                )
+                st.plotly_chart(fig_in, use_container_width=True)
+        
+        with col_c2:
+            st.markdown("##### 🔴 Pemain Paling Banyak Dijual (Top Transfers OUT)")
+            if not top_out_df.empty:
+                fig_out = px.bar(
+                    top_out_df.head(8),
+                    x="Transfers OUT",
+                    y="Player",
+                    orientation="h",
+                    text="Transfers OUT",
+                    color="Transfers OUT",
+                    color_continuous_scale=[[0, "#4d0014"], [1, "#ff6b85"]],
+                    template="plotly_dark"
+                )
+                fig_out.update_layout(
+                    yaxis=dict(autorange="reversed"),
+                    showlegend=False,
+                    coloraxis_showscale=False,
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    margin=dict(l=10, r=20, t=10, b=10),
+                    height=280
+                )
+                st.plotly_chart(fig_out, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("##### 📋 Tabel Rekap Transfer Seluruh Manajer")
+
+        col_ts, col_tdl = st.columns([2, 1])
+        with col_ts:
+            tx_search = st.text_input("🔍 Cari Transfer (Manajer / Pemain):", "", placeholder="Ketik nama manajer / pemain...", key="tx_search_input")
+        
+        display_tx_df = transfers_df.copy()
+        if tx_search:
+            display_tx_df = display_tx_df[
+                display_tx_df["Manager"].str.contains(tx_search, case=False, na=False) |
+                display_tx_df["Team Name"].str.contains(tx_search, case=False, na=False) |
+                display_tx_df["Player In"].str.contains(tx_search, case=False, na=False) |
+                display_tx_df["Player Out"].str.contains(tx_search, case=False, na=False)
+            ]
+
+        with col_tdl:
+            tx_excel_buf = BytesIO()
+            with pd.ExcelWriter(tx_excel_buf, engine="openpyxl") as writer:
+                display_tx_df.to_excel(writer, sheet_name="Transfers_GW", index=False)
+            st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+            st.download_button(
+                label="📊 Export Excel Transfer",
+                data=tx_excel_buf.getvalue(),
+                file_name=f"FPL_Transfers_{league_id_input}_GW{selected_gw}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="dl_tx_excel",
+                use_container_width=True
+            )
+
+        if not display_tx_df.empty:
+            # Custom sharp styled table for transfers
+            h_tmgr, h_tin, h_tout, h_thit, h_tgain = st.columns([2.5, 2.5, 2.5, 1.0, 1.5])
+            h_tmgr.markdown('<div class="std-col-head">Manajer & Tim</div>', unsafe_allow_html=True)
+            h_tin.markdown('<div class="std-col-head">🟢 Pemain Masuk (IN)</div>', unsafe_allow_html=True)
+            h_tout.markdown('<div class="std-col-head">🔴 Pemain Keluar (OUT)</div>', unsafe_allow_html=True)
+            h_thit.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
+            h_tgain.markdown('<div class="std-col-head">Dampak Poin (Net)</div>', unsafe_allow_html=True)
+
+            chips_data = data.get("chips_df")
+
+            for _, tx in display_tx_df.iterrows():
+                c_tmgr, c_tin, c_tout, c_thit, c_tgain = st.columns([2.5, 2.5, 2.5, 1.0, 1.5])
+                
+                btn_lbl = f"**{_md_escape(tx['Team Name'])}**\n\n_{_md_escape(tx['Manager'])}_"
+                mgr_row = standings_df[standings_df["entry_id"] == tx["entry_id"]].iloc[0] if not standings_df.empty and (standings_df["entry_id"] == tx["entry_id"]).any() else None
+                if c_tmgr.button(btn_lbl, key=f"txmgr_{tx['entry_id']}_{tx['Player In'][:4]}_{tx['Player Out'][:4]}", help="Buka detail manajer"):
+                    if mgr_row is not None:
+                        show_manager_dialog(mgr_row, chips_data)
+
+                # Player IN
+                c_tin.markdown(f"""
+                <div style="padding: 6px 0;">
+                    <b style="color: #00FF87;">🟢 {html.escape(tx['Player In'])}</b><br>
+                    <span style="font-size: 0.76rem; color: #8c9ba5;">£{tx['In Price']:.1f}m · <b style="color: #F5F7FA;">{tx['In Pts']} pts</b> di GW ini</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Player OUT
+                c_tout.markdown(f"""
+                <div style="padding: 6px 0;">
+                    <b style="color: #ff6b85;">🔴 {html.escape(tx['Player Out'])}</b><br>
+                    <span style="font-size: 0.76rem; color: #8c9ba5;">£{tx['Out Price']:.1f}m · <b style="color: #F5F7FA;">{tx['Out Pts']} pts</b> di GW ini</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Hits
+                hit_val = tx['Transfer Cost']
+                if hit_val > 0:
+                    c_thit.markdown(f'<div class="std-hit" style="padding: 10px 0;">-{hit_val} pts</div>', unsafe_allow_html=True)
+                else:
+                    c_thit.markdown('<div class="std-muted" style="padding: 10px 0;">Free</div>', unsafe_allow_html=True)
+
+                # Net Gain
+                net_g = tx['Net Gain']
+                if net_g > 0:
+                    gain_html = f'<span style="color: #00FF87; font-weight: 800; font-family: Space Grotesk, sans-serif; font-size: 1.05rem;">+{net_g} pts</span> <span style="font-size: 0.72rem; color: #00FF87;">(Untung)</span>'
+                elif net_g < 0:
+                    gain_html = f'<span style="color: #ff6b85; font-weight: 800; font-family: Space Grotesk, sans-serif; font-size: 1.05rem;">{net_g} pts</span> <span style="font-size: 0.72rem; color: #ff6b85;">(Rugi)</span>'
+                else:
+                    gain_html = f'<span style="color: var(--text-muted); font-weight: 700; font-family: Space Grotesk, sans-serif;">0 pts</span>'
+
+                c_tgain.markdown(f'<div style="padding: 10px 0;">{gain_html}</div>', unsafe_allow_html=True)
 
 # ================= TAB 2: TRENDS & CHARTS =================
 with tab2:

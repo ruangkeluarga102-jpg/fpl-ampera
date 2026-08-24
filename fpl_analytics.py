@@ -136,20 +136,32 @@ class FPLMiniLeagueAnalyzer:
             entry_history = picks_data.get("entry_history", {})
             active_chip = picks_data.get("active_chip", None)
 
-            # Transfers made specifically for this gameweek (in/out player names)
+            # Transfers made specifically for this gameweek (in/out player names and points)
             gw_transfers = []
             for t in all_transfers:
                 if t.get("event") != gameweek:
                     continue
-                p_out = self.get_player_info(t.get("element_out"))
-                p_in = self.get_player_info(t.get("element_in"))
+                in_id = t.get("element_in")
+                out_id = t.get("element_out")
+                p_out = self.get_player_info(out_id)
+                p_in = self.get_player_info(in_id)
+                pts_in = live_points_map.get(in_id, 0)
+                pts_out = live_points_map.get(out_id, 0)
+                net_pts = pts_in - pts_out
+
                 gw_transfers.append({
-                    "out_name": p_out["web_name"],
-                    "out_team": p_out["team_short"],
-                    "out_cost": t.get("element_out_cost", 0) / 10.0,
+                    "in_id": in_id,
                     "in_name": p_in["web_name"],
                     "in_team": p_in["team_short"],
                     "in_cost": t.get("element_in_cost", 0) / 10.0,
+                    "in_points": pts_in,
+                    "out_id": out_id,
+                    "out_name": p_out["web_name"],
+                    "out_team": p_out["team_short"],
+                    "out_cost": t.get("element_out_cost", 0) / 10.0,
+                    "out_points": pts_out,
+                    "net_points": net_pts,
+                    "time": t.get("time")
                 })
 
             # Determine rank movement
@@ -323,6 +335,56 @@ class FPLMiniLeagueAnalyzer:
         else:
             captaincy_df = pd.DataFrame()
 
+        # Build League Transfer Market Data
+        league_transfers_list = []
+        transfers_in_counter = {}
+        transfers_out_counter = {}
+
+        for row in standings_rows:
+            mgr_name = row["Manager"]
+            team_name = row["Team Name"]
+            entry_id = row["entry_id"]
+            transfers = row.get("gw_transfers", [])
+            hit_cost = row.get("Transfer Cost", 0)
+
+            for t in transfers:
+                p_in_label = f"{t['in_name']} ({t['in_team']})"
+                p_out_label = f"{t['out_name']} ({t['out_team']})"
+
+                transfers_in_counter[p_in_label] = transfers_in_counter.get(p_in_label, 0) + 1
+                transfers_out_counter[p_out_label] = transfers_out_counter.get(p_out_label, 0) + 1
+
+                league_transfers_list.append({
+                    "Manager": mgr_name,
+                    "Team Name": team_name,
+                    "entry_id": entry_id,
+                    "Rank": row["Rank"],
+                    "Player In": p_in_label,
+                    "In Pos": self.get_player_info(t["in_id"])["position"],
+                    "In Price": t["in_cost"],
+                    "In Pts": t["in_points"],
+                    "Player Out": p_out_label,
+                    "Out Pos": self.get_player_info(t["out_id"])["position"],
+                    "Out Price": t["out_cost"],
+                    "Out Pts": t["out_points"],
+                    "Net Gain": t["net_points"],
+                    "Transfer Cost": hit_cost
+                })
+
+        transfers_df = pd.DataFrame(league_transfers_list)
+        if not transfers_df.empty:
+            transfers_df = transfers_df.sort_values(by=["Net Gain", "In Pts"], ascending=[False, False]).reset_index(drop=True)
+
+        top_in_df = pd.DataFrame([
+            {"Player": k, "Transfers IN": v, "% of League": round(v / total_managers * 100, 1)}
+            for k, v in sorted(transfers_in_counter.items(), key=lambda x: x[1], reverse=True)
+        ])
+
+        top_out_df = pd.DataFrame([
+            {"Player": k, "Transfers OUT": v, "% of League": round(v / total_managers * 100, 1)}
+            for k, v in sorted(transfers_out_counter.items(), key=lambda x: x[1], reverse=True)
+        ])
+
         return {
             "league_info": league_info,
             "gameweek": gameweek,
@@ -332,5 +394,8 @@ class FPLMiniLeagueAnalyzer:
             "captaincy_df": captaincy_df,
             "chips_df": chips_df,
             "history_df": history_df,
+            "transfers_df": transfers_df,
+            "top_transfers_in_df": top_in_df,
+            "top_transfers_out_df": top_out_df,
             "raw_standings": standings_rows
         }
