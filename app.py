@@ -433,6 +433,24 @@ st.markdown("""
     .kpi-accent-pink   { border-left: 4px solid #E90052; }
     .kpi-accent-cyan   { border-left: 4px solid #FFE27A; }
 
+    /* Popover Styling for Shared Captains */
+    div[data-testid="stPopover"] button {
+        background: rgba(2, 239, 255, 0.08) !important;
+        border: 1px solid rgba(2, 239, 255, 0.3) !important;
+        color: #02EFFF !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 700 !important;
+        border-radius: 4px !important;
+        font-size: 0.8rem !important;
+        margin-top: 4px !important;
+        transition: all 0.2s ease !important;
+    }
+    div[data-testid="stPopover"] button:hover {
+        background: rgba(2, 239, 255, 0.2) !important;
+        border-color: #02EFFF !important;
+        color: #FFFFFF !important;
+    }
+
     /* Modern Sharp Segmented Tabs Bar */
     div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {
         display: none !important;
