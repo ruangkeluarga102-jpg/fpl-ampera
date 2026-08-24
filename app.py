@@ -1303,17 +1303,6 @@ if not standings_df.empty:
         </div>
         """, unsafe_allow_html=True)
     with col3:
-        st.markdown(f"""
-        <div class="kpi-card kpi-accent-pink">
-            <div class="kpi-header">
-                <span class="kpi-label">Rata-Rata Liga</span>
-                {SVG_ICONS['chart']}
-            </div>
-            <div class="kpi-value">{avg_gw_pts:.1f} <span style="font-size: 1rem; color: #8c9ba5;">pts</span></div>
-            <div class="kpi-subtext">Rata-rata seluruh {total_managers} manajer</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col4:
         if len(top_cap_managers) == 1:
             winner = top_cap_managers[0]
             st.markdown(f"""
@@ -1371,6 +1360,17 @@ if not standings_df.empty:
                 <div class="kpi-subtext">Belum ada data kapten</div>
             </div>
             """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="kpi-card kpi-accent-pink">
+            <div class="kpi-header">
+                <span class="kpi-label">Rata-Rata Liga</span>
+                {SVG_ICONS['chart']}
+            </div>
+            <div class="kpi-value">{avg_gw_pts:.1f} <span style="font-size: 1rem; color: #8c9ba5;">pts</span></div>
+            <div class="kpi-subtext">Rata-rata seluruh {total_managers} manajer</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
