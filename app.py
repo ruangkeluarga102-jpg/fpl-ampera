@@ -470,30 +470,39 @@ st.markdown("""
         flex-wrap: wrap !important;
     }
     .stTabs [data-baseweb="tab"] {
-        padding: 11px 22px !important;
+        padding: 13px 26px !important;
         border-radius: 0px !important;
         clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%) !important;
         font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 800 !important;
-        font-size: 1.05rem !important;
+        font-size: 1.22rem !important;
         letter-spacing: 0.3px !important;
-        color: #E2E8F0 !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        background: rgba(255, 255, 255, 0.04) !important;
+        color: #F0F4F8 !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .stTabs [data-baseweb="tab"] p, .stTabs [data-baseweb="tab"] span {
+        font-size: 1.22rem !important;
+        font-weight: 800 !important;
+        font-family: 'Space Grotesk', sans-serif !important;
     }
     .stTabs [data-baseweb="tab"]:hover {
         color: #00FF87 !important;
-        background: rgba(0, 255, 135, 0.08) !important;
+        background: rgba(0, 255, 135, 0.1) !important;
         border-color: rgba(0, 255, 135, 0.4) !important;
         transform: translateY(-2px);
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #37003C 0%, #52005A 100%) !important;
+        background: linear-gradient(135deg, #37003C 0%, #580061 100%) !important;
         color: #00FF87 !important;
-        border: 1.5px solid #00FF87 !important;
-        box-shadow: 0 0 20px rgba(0, 255, 135, 0.32), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+        border: 2px solid #00FF87 !important;
+        box-shadow: 0 0 24px rgba(0, 255, 135, 0.38), 0 4px 16px rgba(0, 0, 0, 0.5) !important;
         transform: translateY(-1px);
+    }
+    .stTabs [aria-selected="true"] p, .stTabs [aria-selected="true"] span {
+        color: #00FF87 !important;
+        font-weight: 900 !important;
     }
 
     /* Pitch Card Visualizer - Sharp Tactical Hexagonal Style */
