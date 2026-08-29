@@ -452,72 +452,55 @@ st.markdown("""
     }
 
     /* Modern Sharp Segmented Tabs Bar - Large Header-Sized Font (Matching Titles) */
-    div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {
-        display: none !important;
-    }
-    .stTabs [data-baseweb="tab-list"] {
+    /* Streamlit's tab markup: div[data-testid="stTabs"] > ... > [role="tablist"] >
+       div[data-testid="stTab"][role="tab"] (data-selected="true" when active).
+       No <button> / data-baseweb here — that's the old (pre-1.5x) markup. */
+    div[data-testid="stTabs"] [role="tablist"] {
         gap: 10px !important;
         background: rgba(14, 20, 32, 0.92) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         backdrop-filter: blur(16px) !important;
         padding: 10px !important;
-        border-radius: 0px !important;
+        border-radius: 14px !important;
         border: 1px solid rgba(255, 255, 255, 0.16) !important;
-        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
         margin-bottom: 28px !important;
-        display: flex !important;
         flex-wrap: wrap !important;
     }
-    .stTabs [data-baseweb="tab"],
-    .stTabs button,
-    div[data-baseweb="tab-list"] button {
+    div[data-testid="stTabs"] div[data-testid="stTab"] {
         padding: 12px 26px !important;
-        border-radius: 0px !important;
-        clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%) !important;
+        border-radius: 999px !important;
         font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 800 !important;
-        font-size: 1.45rem !important;
+        font-size: 1.15rem !important;
         line-height: 1.3 !important;
         color: #F0F4F8 !important;
         border: 1px solid rgba(255, 255, 255, 0.16) !important;
         background: rgba(255, 255, 255, 0.05) !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        height: auto !important;
+        cursor: pointer !important;
     }
-    .stTabs [data-baseweb="tab"] *,
-    .stTabs [data-baseweb="tab"] p,
-    .stTabs [data-baseweb="tab"] span,
-    .stTabs [data-baseweb="tab"] div,
-    div[data-baseweb="tab-list"] p,
-    div[data-baseweb="tab-list"] span,
-    div[data-baseweb="tab-list"] div {
-        font-size: 1.45rem !important;
+    div[data-testid="stTabs"] div[data-testid="stTab"] * {
+        font-size: 1.15rem !important;
         font-weight: 800 !important;
         font-family: 'Space Grotesk', sans-serif !important;
         line-height: 1.3 !important;
+        color: inherit !important;
     }
-    .stTabs [data-baseweb="tab"]:hover,
-    div[data-baseweb="tab-list"] button:hover {
+    div[data-testid="stTabs"] div[data-testid="stTab"]:hover {
         color: #00FF87 !important;
         background: rgba(0, 255, 135, 0.12) !important;
         border-color: rgba(0, 255, 135, 0.5) !important;
         transform: translateY(-2px);
     }
-    .stTabs [data-baseweb="tab"]:hover *,
-    div[data-baseweb="tab-list"] button:hover * {
-        color: #00FF87 !important;
-    }
-    .stTabs [aria-selected="true"],
-    div[data-baseweb="tab-list"] button[aria-selected="true"] {
+    div[data-testid="stTabs"] div[data-testid="stTab"][data-selected="true"] {
         background: linear-gradient(135deg, #37003C 0%, #580061 100%) !important;
         color: #00FF87 !important;
         border: 2px solid #00FF87 !important;
         box-shadow: 0 0 24px rgba(0, 255, 135, 0.4), 0 4px 16px rgba(0, 0, 0, 0.5) !important;
         transform: translateY(-1px);
     }
-    .stTabs [aria-selected="true"] *,
-    div[data-baseweb="tab-list"] button[aria-selected="true"] * {
+    div[data-testid="stTabs"] div[data-testid="stTab"][data-selected="true"] * {
         color: #00FF87 !important;
         font-weight: 900 !important;
     }
