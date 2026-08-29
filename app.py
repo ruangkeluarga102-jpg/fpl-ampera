@@ -2032,7 +2032,7 @@ with tab3:
                 cc3.markdown(f'<div class="std-points" style="padding: 10px 0;">{crow["% of League"]:.1f}%</div>', unsafe_allow_html=True)
     with col_pie:
         if not captaincy_df.empty:
-            def _darken_hex(hex_color, factor=0.5):
+            def _darken_hex(hex_color, factor=0.72):
                 hex_color = hex_color.lstrip('#')
                 r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
                 return f"rgb({int(r*factor)},{int(g*factor)},{int(b*factor)})"
@@ -2045,23 +2045,23 @@ with tab3:
             values = captaincy_df["Count"]
 
             fig_cap = go.Figure()
-            # bottom layer: darkened "rim" shifted down — gives the donut a 3D extruded side
+            # bottom layer: softly darkened rim, barely offset — a gentle sense of
+            # depth rather than a hard mechanical slab
             fig_cap.add_trace(go.Pie(
-                labels=names, values=values, hole=0.45,
+                labels=names, values=values, hole=0.58,
                 sort=False, direction="clockwise", rotation=0,
-                marker=dict(colors=shadow_colors, line=dict(color="rgba(0,0,0,0.5)", width=1)),
-                domain=dict(x=[0, 1], y=[0, 0.90]),
+                marker=dict(colors=shadow_colors, line=dict(color="rgba(0,0,0,0.15)", width=0.5)),
+                domain=dict(x=[0, 1], y=[0, 0.96]),
                 textinfo="none", hoverinfo="skip", showlegend=False
             ))
-            # top layer: the bright, slightly-exploded donut surface
+            # top layer: bright donut surface, thin soft outline, no slice separation
             fig_cap.add_trace(go.Pie(
-                labels=names, values=values, hole=0.45,
+                labels=names, values=values, hole=0.58,
                 sort=False, direction="clockwise", rotation=0,
-                pull=[0.015] * n_slices,
-                marker=dict(colors=colors, line=dict(color="#0a0e14", width=2.5)),
-                domain=dict(x=[0, 1], y=[0.07, 0.97]),
+                marker=dict(colors=colors, line=dict(color="rgba(10,14,20,0.35)", width=1)),
+                domain=dict(x=[0, 1], y=[0.025, 0.985]),
                 textinfo="percent",
-                textfont=dict(size=12, color="#0a0e14", family="Plus Jakarta Sans", weight=700),
+                textfont=dict(size=12, color="#0a0e14", family="Plus Jakarta Sans", weight=500),
                 hovertemplate="<b>%{label}</b><br>%{value} manajer (%{percent})<extra></extra>"
             ))
             fig_cap.update_layout(
