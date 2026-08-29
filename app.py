@@ -451,45 +451,49 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Modern Sharp Segmented Tabs Bar */
+    /* Modern Sharp Segmented Tabs Bar - High Visibility & Bold Style */
     div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {
         display: none !important;
     }
     .stTabs [data-baseweb="tab-list"] {
-        gap: 6px !important;
-        background: rgba(15, 20, 30, 0.85) !important;
+        gap: 8px !important;
+        background: rgba(14, 20, 32, 0.92) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         backdrop-filter: blur(16px) !important;
-        padding: 6px !important;
+        padding: 8px !important;
         border-radius: 0px !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
         clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
-        margin-bottom: 24px !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+        margin-bottom: 26px !important;
         display: flex !important;
         flex-wrap: wrap !important;
     }
     .stTabs [data-baseweb="tab"] {
-        padding: 9px 20px !important;
+        padding: 11px 22px !important;
         border-radius: 0px !important;
         clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%) !important;
         font-family: 'Space Grotesk', sans-serif !important;
-        font-weight: 700 !important;
-        font-size: 0.88rem !important;
-        color: #8C9BA5 !important;
-        border: none !important;
-        background: transparent !important;
+        font-weight: 800 !important;
+        font-size: 1.05rem !important;
+        letter-spacing: 0.3px !important;
+        color: #E2E8F0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        background: rgba(255, 255, 255, 0.04) !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     .stTabs [data-baseweb="tab"]:hover {
-        color: #FFFFFF !important;
-        background: rgba(255, 255, 255, 0.08) !important;
+        color: #00FF87 !important;
+        background: rgba(0, 255, 135, 0.08) !important;
+        border-color: rgba(0, 255, 135, 0.4) !important;
+        transform: translateY(-2px);
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #37003c 0%, #1f0024 100%) !important;
+        background: linear-gradient(135deg, #37003C 0%, #52005A 100%) !important;
         color: #00FF87 !important;
-        border: 1px solid rgba(0, 255, 135, 0.45) !important;
-        box-shadow: 0 4px 16px rgba(0, 255, 135, 0.22) !important;
+        border: 1.5px solid #00FF87 !important;
+        box-shadow: 0 0 20px rgba(0, 255, 135, 0.32), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+        transform: translateY(-1px);
     }
 
     /* Pitch Card Visualizer - Sharp Tactical Hexagonal Style */
