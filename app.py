@@ -1773,22 +1773,28 @@ with tab_transfers:
             if not top_in_df.empty:
                 fig_in = px.bar(
                     top_in_df.head(8),
-                    x="Transfers IN",
-                    y="Player",
-                    orientation="h",
+                    x="Player",
+                    y="Transfers IN",
                     text="Transfers IN",
                     color="Transfers IN",
                     color_continuous_scale=[[0, "#004d28"], [1, "#00FF87"]],
                     template="plotly_dark"
                 )
+                fig_in.update_traces(
+                    textposition="outside",
+                    textfont=dict(size=12, color="#FFFFFF", family="Space Grotesk")
+                )
                 fig_in.update_layout(
-                    yaxis=dict(autorange="reversed"),
                     showlegend=False,
                     coloraxis_showscale=False,
                     paper_bgcolor="rgba(0,0,0,0)",
                     plot_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=10, r=20, t=10, b=10),
-                    height=280
+                    margin=dict(l=10, r=10, t=25, b=10),
+                    height=320,
+                    xaxis_title="",
+                    yaxis_title="",
+                    xaxis=dict(tickangle=-35, tickfont=dict(size=11, color="#E2E8F0")),
+                    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)")
                 )
                 st.plotly_chart(fig_in, use_container_width=True)
         
@@ -1797,22 +1803,28 @@ with tab_transfers:
             if not top_out_df.empty:
                 fig_out = px.bar(
                     top_out_df.head(8),
-                    x="Transfers OUT",
-                    y="Player",
-                    orientation="h",
+                    x="Player",
+                    y="Transfers OUT",
                     text="Transfers OUT",
                     color="Transfers OUT",
                     color_continuous_scale=[[0, "#4d0014"], [1, "#ff6b85"]],
                     template="plotly_dark"
                 )
+                fig_out.update_traces(
+                    textposition="outside",
+                    textfont=dict(size=12, color="#FFFFFF", family="Space Grotesk")
+                )
                 fig_out.update_layout(
-                    yaxis=dict(autorange="reversed"),
                     showlegend=False,
                     coloraxis_showscale=False,
                     paper_bgcolor="rgba(0,0,0,0)",
                     plot_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=10, r=20, t=10, b=10),
-                    height=280
+                    margin=dict(l=10, r=10, t=25, b=10),
+                    height=320,
+                    xaxis_title="",
+                    yaxis_title="",
+                    xaxis=dict(tickangle=-35, tickfont=dict(size=11, color="#E2E8F0")),
+                    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)")
                 )
                 st.plotly_chart(fig_out, use_container_width=True)
 
