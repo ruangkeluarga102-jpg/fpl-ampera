@@ -456,36 +456,39 @@ st.markdown("""
        div[data-testid="stTab"][role="tab"] (data-selected="true" when active).
        No <button> / data-baseweb here — that's the old (pre-1.5x) markup. */
     div[data-testid="stTabs"] [role="tablist"] {
-        gap: 10px !important;
+        gap: 8px !important;
         background: rgba(14, 20, 32, 0.92) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         backdrop-filter: blur(16px) !important;
-        padding: 10px !important;
+        padding: 8px !important;
         border-radius: 14px !important;
         border: 1px solid rgba(255, 255, 255, 0.16) !important;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
         margin-bottom: 28px !important;
-        flex-wrap: wrap !important;
+        flex-wrap: nowrap !important;
     }
     div[data-testid="stTabs"] div[data-testid="stTab"] {
-        padding: 12px 26px !important;
+        padding: 10px 14px !important;
         border-radius: 999px !important;
         font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 800 !important;
-        font-size: 1.15rem !important;
+        font-size: 0.98rem !important;
         line-height: 1.3 !important;
         color: #F0F4F8 !important;
         border: 1px solid rgba(255, 255, 255, 0.16) !important;
         background: rgba(255, 255, 255, 0.05) !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         cursor: pointer !important;
+        white-space: nowrap !important;
+        flex: 0 1 auto !important;
     }
     div[data-testid="stTabs"] div[data-testid="stTab"] * {
-        font-size: 1.15rem !important;
+        font-size: 0.98rem !important;
         font-weight: 800 !important;
         font-family: 'Space Grotesk', sans-serif !important;
         line-height: 1.3 !important;
         color: inherit !important;
+        white-space: nowrap !important;
     }
     div[data-testid="stTabs"] div[data-testid="stTab"]:hover {
         color: #00FF87 !important;
