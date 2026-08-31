@@ -703,6 +703,12 @@ st.markdown("""
         background: rgba(2, 239, 255, 0.12);
         color: #02EFFF;
         border: 1px solid rgba(2, 239, 255, 0.3);
+        white-space: nowrap;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
     }
     .std-muted { color: var(--text-muted); }
     .std-hit { color: #ff8a8a; font-weight: 600; }
@@ -930,6 +936,12 @@ def render_pitch_html(squad_items):
 _MD_SPECIAL = re.compile(r'([!"#$%&\'()*+,\-./:;<=>?@\[\\\]^_`{|}~])')
 def _md_escape(text):
     return _MD_SPECIAL.sub(r'\\\1', str(text))
+
+_CHIP_SHORT_LABEL = {
+    "WILDCARD": "WC", "FREEHIT": "FH", "BBOOST": "BB", "3XC": "3XC",
+}
+def _chip_short(chip_val):
+    return _CHIP_SHORT_LABEL.get(str(chip_val).upper(), str(chip_val)[:4])
 
 # ----------------- FUNNY GW RECAP (GEMINI) -----------------
 def _get_gemini_api_key():
@@ -1504,7 +1516,7 @@ with tab1:
       with st.container(key="std_scroll_liga"):
         # Table Header
         h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_tx, h_chip, h_hits, h_val = st.columns(
-            [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
+            [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
         )
         h_rank.markdown('<div class="std-col-head">Rank</div>', unsafe_allow_html=True)
         h_move.markdown('<div class="std-col-head">Move</div>', unsafe_allow_html=True)
@@ -1534,7 +1546,7 @@ with tab1:
                 mv_html = f'<span class="move-chip flat">{html.escape(mv_str)}</span>'
 
             c_rank, c_move, c_team, c_mgr, c_gw, c_tot, c_or, c_cap, c_tx, c_chip, c_hits, c_val = st.columns(
-                [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
+                [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
             )
 
             c_rank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{r_val}</span></div>', unsafe_allow_html=True)
@@ -1559,7 +1571,7 @@ with tab1:
 
             chip_val = str(row["Active Chip"])
             if chip_val and chip_val != "-":
-                c_chip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag">{html.escape(chip_val)}</span></div>', unsafe_allow_html=True)
+                c_chip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag" title="{html.escape(chip_val)}">{html.escape(_chip_short(chip_val))}</span></div>', unsafe_allow_html=True)
             else:
                 c_chip.markdown('<div class="std-muted" style="padding: 6px 0;">-</div>', unsafe_allow_html=True)
 
@@ -1672,7 +1684,7 @@ with tab_paid:
         with st.container(key="std_scroll_iuran"):
             # Table Header
             h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
-                [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
+                [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
             )
             h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
             h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
@@ -1694,7 +1706,7 @@ with tab_paid:
                 med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
 
                 c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
-                    [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
+                    [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
                 )
 
                 c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
@@ -1719,7 +1731,7 @@ with tab_paid:
 
                 chip_val = str(row["Active Chip"])
                 if chip_val and chip_val != "-":
-                    c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag">{html.escape(chip_val)}</span></div>', unsafe_allow_html=True)
+                    c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag" title="{html.escape(chip_val)}">{html.escape(_chip_short(chip_val))}</span></div>', unsafe_allow_html=True)
                 else:
                     c_pchip.markdown('<div class="std-muted" style="padding: 6px 0;">-</div>', unsafe_allow_html=True)
 
