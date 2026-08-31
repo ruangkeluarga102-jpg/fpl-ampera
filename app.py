@@ -1919,14 +1919,22 @@ with tab_transfers:
 
             chips_data = data.get("chips_df")
 
-            for _, tx in display_tx_df.iterrows():
+            # Group consecutive rows by manager so their name/team only
+            # renders once, with every transfer they made listed beneath it.
+            for entry_id, tx_group in display_tx_df.groupby("entry_id", sort=False):
+              is_first_tx = True
+              for _, tx in tx_group.iterrows():
                 c_tmgr, c_tin, c_tout, c_thit, c_tgain = st.columns([2.5, 2.5, 2.5, 1.0, 1.5])
-                
-                btn_lbl = f"**{_md_escape(tx['Team Name'])}**\n\n_{_md_escape(tx['Manager'])}_"
-                mgr_row = standings_df[standings_df["entry_id"] == tx["entry_id"]].iloc[0] if not standings_df.empty and (standings_df["entry_id"] == tx["entry_id"]).any() else None
-                if c_tmgr.button(btn_lbl, key=f"txmgr_{tx['entry_id']}_{tx['Player In'][:4]}_{tx['Player Out'][:4]}", help="Buka detail manajer"):
-                    if mgr_row is not None:
-                        show_manager_dialog(mgr_row, chips_data)
+
+                if is_first_tx:
+                    btn_lbl = f"**{_md_escape(tx['Team Name'])}**\n\n_{_md_escape(tx['Manager'])}_"
+                    mgr_row = standings_df[standings_df["entry_id"] == tx["entry_id"]].iloc[0] if not standings_df.empty and (standings_df["entry_id"] == tx["entry_id"]).any() else None
+                    if c_tmgr.button(btn_lbl, key=f"txmgr_{tx['entry_id']}_{tx['Player In'][:4]}_{tx['Player Out'][:4]}", help="Buka detail manajer"):
+                        if mgr_row is not None:
+                            show_manager_dialog(mgr_row, chips_data)
+                    is_first_tx = False
+                else:
+                    c_tmgr.markdown('<div style="padding: 14px 0; text-align: center; color: var(--text-faint); font-size: 1.1rem;">↳</div>', unsafe_allow_html=True)
 
                 # Player IN
                 c_tin.markdown(f"""
