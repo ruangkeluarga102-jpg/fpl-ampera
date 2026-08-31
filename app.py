@@ -723,6 +723,25 @@ st.markdown("""
     }
     .std-chip-tag { white-space: nowrap; }
 
+    /* Standings tables: force one horizontal row per manager and let the
+       whole table scroll sideways on narrow screens, instead of letting
+       Streamlit stack each column into its own full-width block (which was
+       colliding/overlapping text at the min-width:0 above). */
+    div[class*="st-key-std_scroll_liga"], div[class*="st-key-std_scroll_iuran"] {
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+    div[class*="st-key-std_scroll_liga"] div[data-testid="stHorizontalBlock"],
+    div[class*="st-key-std_scroll_iuran"] div[data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+        min-width: 980px;
+    }
+    div[class*="st-key-std_scroll_liga"] div[data-testid="column"],
+    div[class*="st-key-std_scroll_iuran"] div[data-testid="column"] {
+        min-width: 0 !important;
+        flex-shrink: 0 !important;
+    }
+
     div[class*="st-key-mgrrow_"], div[class*="st-key-paidmgr_"] {
         border-radius: 8px;
         transition: background 0.12s ease;
@@ -1482,6 +1501,7 @@ with tab1:
         ]
 
     if not display_df.empty:
+      with st.container(key="std_scroll_liga"):
         # Table Header
         h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_tx, h_chip, h_hits, h_val = st.columns(
             [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
@@ -1504,7 +1524,7 @@ with tab1:
         for _, row in display_df.iterrows():
             r_val = int(row["Rank"])
             med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(r_val, "")
-            
+
             mv_str = str(row["Move"])
             if "▲" in mv_str or "+" in mv_str:
                 mv_html = f'<span class="move-chip up">{html.escape(mv_str)}</span>'
@@ -1527,7 +1547,7 @@ with tab1:
 
             c_gw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
             c_tot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
-            
+
             or_val = row.get("Overall Rank", "-")
             or_fmt = f"{or_val:,}" if isinstance(or_val, (int, float)) else str(or_val)
             c_or.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.8rem;">{or_fmt}</div>', unsafe_allow_html=True)
@@ -1649,66 +1669,67 @@ with tab_paid:
                 use_container_width=True
             )
         
-        # Table Header
-        h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
-            [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
-        )
-        h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
-        h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
-        h_pteam.markdown('<div class="std-col-head">Tim (Klik detail)</div>', unsafe_allow_html=True)
-        h_pmgr.markdown('<div class="std-col-head">Manajer</div>', unsafe_allow_html=True)
-        h_pgw.markdown('<div class="std-col-head">GW Pts</div>', unsafe_allow_html=True)
-        h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
-        h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
-        h_pcap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
-        h_ptx.markdown('<div class="std-col-head">Transfer</div>', unsafe_allow_html=True)
-        h_pchip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
-        h_phits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
-        h_pval.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
-        
-        chips_data = data.get("chips_df")
-        
-        for _, row in display_paid_df.iterrows():
-            pr_val = int(row["Paid_Rank"])
-            med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
-            
-            c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
+        with st.container(key="std_scroll_iuran"):
+            # Table Header
+            h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
                 [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
             )
+            h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
+            h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
+            h_pteam.markdown('<div class="std-col-head">Tim (Klik detail)</div>', unsafe_allow_html=True)
+            h_pmgr.markdown('<div class="std-col-head">Manajer</div>', unsafe_allow_html=True)
+            h_pgw.markdown('<div class="std-col-head">GW Pts</div>', unsafe_allow_html=True)
+            h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
+            h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
+            h_pcap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
+            h_ptx.markdown('<div class="std-col-head">Transfer</div>', unsafe_allow_html=True)
+            h_pchip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
+            h_phits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
+            h_pval.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
 
-            c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
-            c_porg.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">#{row["Rank"]}</div>', unsafe_allow_html=True)
+            chips_data = data.get("chips_df")
 
-            btn_label = f"**{_md_escape(row['Team Name'])}**"
-            if c_pteam.button(btn_label, key=f"paidmgr_{row['entry_id']}", help="Klik untuk membuka susunan squad & detail"):
-                show_manager_dialog(row, chips_data)
-            c_pmgr.markdown(f'<div class="std-muted" style="padding: 10px 0; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Manager"]))}</div>', unsafe_allow_html=True)
+            for _, row in display_paid_df.iterrows():
+                pr_val = int(row["Paid_Rank"])
+                med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
 
-            c_pgw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
-            c_ptot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
-            
-            or_val = row.get("Overall Rank", "-")
-            or_fmt = f"{or_val:,}" if isinstance(or_val, (int, float)) else str(or_val)
-            c_por.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.8rem;">{or_fmt}</div>', unsafe_allow_html=True)
-            
-            c_pcap.markdown(f'<div style="padding: 6px 0; font-size: 0.82rem; color: #E2E8F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Captain"]))}</div>', unsafe_allow_html=True)
-            
-            # Quick Transfer Column
-            c_ptx.markdown(f'<div style="padding: 8px 0;">{format_quick_transfers(row)}</div>', unsafe_allow_html=True)
+                c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
+                    [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.5, 1.6, 0.6, 0.6, 0.8]
+                )
 
-            chip_val = str(row["Active Chip"])
-            if chip_val and chip_val != "-":
-                c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag">{html.escape(chip_val)}</span></div>', unsafe_allow_html=True)
-            else:
-                c_pchip.markdown('<div class="std-muted" style="padding: 6px 0;">-</div>', unsafe_allow_html=True)
-                
-            hits_val = row.get("Transfer Cost", 0) or 0
-            if hits_val:
-                c_phits.markdown(f'<div class="std-hit" style="padding: 6px 0;">-{hits_val}</div>', unsafe_allow_html=True)
-            else:
-                c_phits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
-                
-            c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
+                c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
+                c_porg.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">#{row["Rank"]}</div>', unsafe_allow_html=True)
+
+                btn_label = f"**{_md_escape(row['Team Name'])}**"
+                if c_pteam.button(btn_label, key=f"paidmgr_{row['entry_id']}", help="Klik untuk membuka susunan squad & detail"):
+                    show_manager_dialog(row, chips_data)
+                c_pmgr.markdown(f'<div class="std-muted" style="padding: 10px 0; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Manager"]))}</div>', unsafe_allow_html=True)
+
+                c_pgw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
+                c_ptot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
+
+                or_val = row.get("Overall Rank", "-")
+                or_fmt = f"{or_val:,}" if isinstance(or_val, (int, float)) else str(or_val)
+                c_por.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.8rem;">{or_fmt}</div>', unsafe_allow_html=True)
+
+                c_pcap.markdown(f'<div style="padding: 6px 0; font-size: 0.82rem; color: #E2E8F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Captain"]))}</div>', unsafe_allow_html=True)
+
+                # Quick Transfer Column
+                c_ptx.markdown(f'<div style="padding: 8px 0;">{format_quick_transfers(row)}</div>', unsafe_allow_html=True)
+
+                chip_val = str(row["Active Chip"])
+                if chip_val and chip_val != "-":
+                    c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag">{html.escape(chip_val)}</span></div>', unsafe_allow_html=True)
+                else:
+                    c_pchip.markdown('<div class="std-muted" style="padding: 6px 0;">-</div>', unsafe_allow_html=True)
+
+                hits_val = row.get("Transfer Cost", 0) or 0
+                if hits_val:
+                    c_phits.markdown(f'<div class="std-hit" style="padding: 6px 0;">-{hits_val}</div>', unsafe_allow_html=True)
+                else:
+                    c_phits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
+
+                c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
 
 # ================= TAB: BURSA TRANSFER =================
 with tab_transfers:
