@@ -953,7 +953,12 @@ def _get_gemini_api_key():
         pass
     return os.environ.get("GEMINI_API_KEY")
 
-def _build_gw_summary(standings_df, captaincy_df, selected_gw, league_name):
+def _build_gw_summary(standings_df, captaincy_df, selected_gw, league_name, data=None):
+    """Pulls a cross-section from every league-wide tab (standings, transfers,
+    captaincy/EO, chips, season trend) EXCEPT Klasemen Iuran — that's just a
+    filtered view of the same standings, not new information — so the single
+    AI recap panel can speak to what happened across the whole app, not just
+    the raw table it sits above."""
     df = standings_df.sort_values(by="GW Points", ascending=False)
     top = df.iloc[0]
     bottom = df.iloc[-1]
@@ -977,6 +982,7 @@ def _build_gw_summary(standings_df, captaincy_df, selected_gw, league_name):
     chips_used = df[df["Active Chip"].astype(str) != "-"]
 
     lines = [
+        f"=== KLASEMEN LIGA (GW{selected_gw}) ===",
         f"Liga: {league_name}, Gameweek {selected_gw}",
         f"Total peserta: {len(df)} manajer",
         f"Rata-rata poin GW ini: {avg_pts:.1f}",
@@ -995,17 +1001,81 @@ def _build_gw_summary(standings_df, captaincy_df, selected_gw, league_name):
     else:
         lines.append("Tidak ada yang pakai chip GW ini.")
 
+    if data:
+        # --- Bursa Transfer ---
+        transfers_df = data.get("transfers_df", pd.DataFrame())
+        top_in_df = data.get("top_transfers_in_df", pd.DataFrame())
+        top_out_df = data.get("top_transfers_out_df", pd.DataFrame())
+        if not transfers_df.empty:
+            lines.append(f"\n=== BURSA TRANSFER (GW{selected_gw}) ===")
+            lines.append(f"Total transfer di liga: {len(transfers_df)}")
+            best_tx = transfers_df.iloc[0]
+            worst_tx = transfers_df.iloc[-1]
+            lines.append(f"Transfer paling untung: {best_tx['Team Name']} lepas {best_tx['Player Out']} ambil {best_tx['Player In']}, net +{best_tx['Net Gain']} poin")
+            if worst_tx['Net Gain'] < 0:
+                lines.append(f"Transfer paling buntung: {worst_tx['Team Name']} lepas {worst_tx['Player Out']} ambil {worst_tx['Player In']}, net {worst_tx['Net Gain']} poin")
+            if not top_in_df.empty:
+                r = top_in_df.iloc[0]
+                lines.append(f"Pemain paling laris dibeli: {r['Player']} ({r['Transfers IN']}x dibeli)")
+            if not top_out_df.empty:
+                r = top_out_df.iloc[0]
+                lines.append(f"Pemain paling banyak dibuang: {r['Player']} ({r['Transfers OUT']}x dilepas)")
+
+        # --- Kapten & EO ---
+        ownership_df = data.get("ownership_df", pd.DataFrame())
+        if not ownership_df.empty:
+            lines.append(f"\n=== KAPTEN & OWNERSHIP (GW{selected_gw}) ===")
+            top_owned = ownership_df.sort_values(by="Effective Own % (EO)", ascending=False).iloc[0]
+            lines.append(f"Pemain paling banyak dimiliki (effective ownership): {top_owned['Player']} ({top_owned['Effective Own % (EO)']}% EO)")
+            diffs = ownership_df[(ownership_df["League Own %"] < 15) & (ownership_df["Total Pts"] >= ownership_df["Total Pts"].median())]
+            if not diffs.empty:
+                d = diffs.sort_values(by="Total Pts", ascending=False).iloc[0]
+                lines.append(f"Differential pick yang lumayan cuan musim ini: {d['Player']} (cuma dimiliki {d['League Own %']}% liga, tapi udah {d['Total Pts']} poin musim ini)")
+
+        # --- Pelacak Chip (season-wide tally) ---
+        chips_df = data.get("chips_df", pd.DataFrame())
+        if not chips_df.empty and "Total Chips Used" in chips_df.columns:
+            lines.append(f"\n=== CHIP MUSIM INI ===")
+            total_chips_used = int(chips_df["Total Chips Used"].sum())
+            zero_chip = int((chips_df["Total Chips Used"] == 0).sum())
+            lines.append(f"Total chip terpakai sepanjang musim di liga ini: {total_chips_used}")
+            lines.append(f"Manajer yang belum pernah pakai chip sama sekali: {zero_chip} orang")
+
+        # --- Tren & Performa (season trend) ---
+        history_df = data.get("history_df", pd.DataFrame())
+        if not history_df.empty and history_df["gameweek"].nunique() > 1:
+            first_gw = history_df["gameweek"].min()
+            last_gw = history_df["gameweek"].max()
+            first_ranks = history_df[history_df["gameweek"] == first_gw].set_index("entry_id")["overall_rank"]
+            last_ranks = history_df[history_df["gameweek"] == last_gw].set_index("entry_id")["overall_rank"]
+            common = first_ranks.index.intersection(last_ranks.index)
+            if len(common) > 0:
+                delta = (first_ranks.loc[common] - last_ranks.loc[common]).sort_values(ascending=False)
+                if not delta.empty and delta.iloc[0] > 0:
+                    best_id = delta.index[0]
+                    name = history_df[history_df["entry_id"] == best_id]["team_name"].iloc[0]
+                    lines.append(f"\n=== TREN MUSIM (GW{first_gw}-GW{last_gw}) ===")
+                    lines.append(f"Overall rank paling melejit sepanjang musim: {name} (naik {int(delta.iloc[0]):,} peringkat dunia)")
+                if not delta.empty and delta.iloc[-1] < 0:
+                    worst_id = delta.index[-1]
+                    name = history_df[history_df["entry_id"] == worst_id]["team_name"].iloc[0]
+                    lines.append(f"Overall rank paling anjlok sepanjang musim: {name} (turun {int(-delta.iloc[-1]):,} peringkat dunia)")
+
     return "\n".join(lines)
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def generate_gw_recap(_summary_text, league_id, selected_gw, api_key):
-    client = genai.Client(api_key=api_key)
-    prompt = f"""Kamu adalah komentator Fantasy Premier League yang jenaka, gaya bahasa santai ala nongkrong warung kopi / grup WhatsApp Indonesia, suka nyeletuk dan roasting tapi tetap ramah (bukan menghina).
+    return generate_ai_analysis("liga", _summary_text, league_id, selected_gw, api_key)
 
-Berikut data gameweek liga mini FPL ini:
+@st.cache_data(ttl=3600, show_spinner=False)
+def generate_ai_analysis(cache_ns, _summary_text, league_id, selected_gw, api_key):
+    client = genai.Client(api_key=api_key)
+    prompt = f"""Kamu adalah analis sekaligus komentator Fantasy Premier League yang jenaka dan tajam — gaya bahasa santai ala nongkrong warung kopi / grup WhatsApp Indonesia, suka nyeletuk dan roasting yang lucu tapi tetap ramah (bukan menghina). Tapi kamu BUKAN cuma tukang bercanda — analisamu harus berbobot: sebut angka-angka konkret dari data, bandingkan performa antar manajer/pemain, dan kasih insight yang beneran nyambung dengan datanya, bukan basa-basi generik.
+
+Berikut data yang perlu kamu analisa:
 {_summary_text}
 
-Tulis rekap gameweek ini dalam Bahasa Indonesia, sekitar 120-180 kata, dengan gaya lucu/santai, boleh pakai emoji secukupnya, roasting yang absen chip atau yang skor jeblok tapi tetap suportif. Jangan pakai heading atau bullet point, tulis sebagai narasi mengalir 2-3 paragraf pendek."""
+Tulis analisa dalam Bahasa Indonesia, sekitar 200-280 kata, gaya lucu tapi mendalam — padukan insight analitis (angka, tren, perbandingan spesifik yang disebut namanya) dengan humor. Boleh pakai emoji secukupnya. Jangan pakai heading atau bullet point, tulis sebagai narasi mengalir 3-4 paragraf pendek."""
     response = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
     return response.text.strip()
 
@@ -1468,7 +1538,7 @@ if not standings_df.empty:
         elif not gemini_key:
             st.info("Belum ada `GEMINI_API_KEY`. Ambil API key gratis di [aistudio.google.com](https://aistudio.google.com/apikey), lalu tambahkan sebagai secret bernama `GEMINI_API_KEY`.")
         elif gen_clicked:
-            summary_text = _build_gw_summary(standings_df, data.get("captaincy_df", pd.DataFrame()), selected_gw, league_name)
+            summary_text = _build_gw_summary(standings_df, data.get("captaincy_df", pd.DataFrame()), selected_gw, league_name, data=data)
             with st.spinner("🤖 AI lagi mikirin bahan bercandaan..."):
                 try:
                     recap_text = generate_gw_recap(summary_text, league_id_input, selected_gw, gemini_key)
