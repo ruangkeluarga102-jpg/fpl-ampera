@@ -84,16 +84,18 @@ class FPLMiniLeagueAnalyzer:
         except Exception:
             pass
 
-        # Multi-threaded fetching for manager picks, histories, and transfers
+        # Multi-threaded fetching for manager picks, histories, transfers, and entry profile
         manager_picks_map = {}
         manager_history_map = {}
         manager_transfers_map = {}
+        manager_entry_map = {}
 
         def fetch_manager_details(result):
             entry_id = result["entry"]
             picks = {}
             history = {}
             transfers = []
+            entry_info = {}
             try:
                 picks = self.api.get_manager_picks(entry_id, gameweek)
             except Exception:
@@ -106,16 +108,21 @@ class FPLMiniLeagueAnalyzer:
                 transfers = self.api.get_manager_transfers(entry_id)
             except Exception:
                 pass
-            return entry_id, picks, history, transfers
+            try:
+                entry_info = self.api.get_manager_entry(entry_id)
+            except Exception:
+                pass
+            return entry_id, picks, history, transfers, entry_info
 
         with ThreadPoolExecutor(max_workers=8) as executor:
             futures = [executor.submit(fetch_manager_details, r) for r in standings_results]
             completed = 0
             for future in futures:
-                entry_id, picks, history, transfers = future.result()
+                entry_id, picks, history, transfers, entry_info = future.result()
                 manager_picks_map[entry_id] = picks
                 manager_history_map[entry_id] = history
                 manager_transfers_map[entry_id] = transfers
+                manager_entry_map[entry_id] = entry_info
                 completed += 1
                 if progress_callback:
                     progress_callback(completed, total_managers)
@@ -266,6 +273,17 @@ class FPLMiniLeagueAnalyzer:
                 "Total Chips Used": len(manager_chips)
             })
 
+            entry_info = manager_entry_map.get(entry_id, {})
+            hist_current = history_data.get("current", [])
+            gw_hist_matches = [g for g in hist_current if g.get("event") == gameweek]
+
+            if entry_info.get("summary_overall_rank"):
+                overall_rank_val = entry_info["summary_overall_rank"]
+            elif gw_hist_matches and gw_hist_matches[0].get("overall_rank"):
+                overall_rank_val = gw_hist_matches[0]["overall_rank"]
+            else:
+                overall_rank_val = entry_history.get("overall_rank", "-")
+
             standings_rows.append({
                 "Rank": rank,
                 "Move": movement,
@@ -273,7 +291,7 @@ class FPLMiniLeagueAnalyzer:
                 "Manager": item.get("player_name"),
                 "GW Points": item.get("event_total", entry_history.get("points", 0)),
                 "Total Points": item.get("total", entry_history.get("total_points", 0)),
-                "Overall Rank": entry_history.get("overall_rank", "-"),
+                "Overall Rank": overall_rank_val,
                 "Captain": captain_name,
                 "Vice Captain": vc_name,
                 "Active Chip": active_chip.upper() if active_chip else "-",
