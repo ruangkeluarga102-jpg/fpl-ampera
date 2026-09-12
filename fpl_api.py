@@ -10,6 +10,7 @@ import time
 BASE_URL = "https://fantasy.premierleague.com/api"
 
 class FPLApiClient:
+    """Client for interacting with official Fantasy Premier League (FPL) endpoints."""
     def __init__(self, timeout: int = 15):
         self.session = requests.Session()
         self.session.headers.update({
@@ -17,6 +18,7 @@ class FPLApiClient:
         })
         self.timeout = timeout
         self._bootstrap_cache: Optional[Dict[str, Any]] = None
+        self._bootstrap_timestamp: float = 0.0
 
     def _get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         url = f"{BASE_URL}/{endpoint}"
@@ -24,15 +26,17 @@ class FPLApiClient:
         response.raise_for_status()
         return response.json()
 
-    def get_bootstrap_static(self, force_refresh: bool = False) -> Dict[str, Any]:
-        """Fetch general FPL metadata (elements, teams, events/gameweeks)."""
-        if self._bootstrap_cache is None or force_refresh:
+    def get_bootstrap_static(self, force_refresh: bool = False, max_age_seconds: int = 60) -> Dict[str, Any]:
+        """Fetch general FPL metadata (elements, teams, events/gameweeks) with auto-refresh TTL."""
+        now = time.time()
+        if self._bootstrap_cache is None or force_refresh or (now - self._bootstrap_timestamp) > max_age_seconds:
             self._bootstrap_cache = self._get("bootstrap-static/")
+            self._bootstrap_timestamp = now
         return self._bootstrap_cache
 
     def get_current_gameweek(self) -> int:
         """Find the current or latest active gameweek."""
-        data = self.get_bootstrap_static()
+        data = self.get_bootstrap_static(force_refresh=True)
         for event in data.get("events", []):
             if event.get("is_current"):
                 return event.get("id")

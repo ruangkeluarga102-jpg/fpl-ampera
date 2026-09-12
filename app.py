@@ -875,11 +875,10 @@ def save_snapshot_to_db(league_id: int, gameweek: int, league_name: str, data: d
 
 init_db()
 
-@st.cache_resource
 def get_api_client():
     return FPLApiClient()
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner=False)
 def load_league_data(league_id: int, gameweek: int, max_entries: int):
     api = FPLApiClient()
     analyzer = FPLMiniLeagueAnalyzer(api)
