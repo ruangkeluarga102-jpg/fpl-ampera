@@ -433,6 +433,33 @@ class FPLMiniLeagueAnalyzer:
             for k, v in sorted(transfers_out_counter.items(), key=lambda x: x[1], reverse=True)
         ])
 
+        # Build Weekly Winners DataFrame
+        weekly_winners_list = []
+        if not history_df.empty:
+            all_gws = sorted(history_df["gameweek"].unique())
+            for gw_num in all_gws:
+                gw_df = history_df[history_df["gameweek"] == gw_num]
+                if gw_df.empty:
+                    continue
+                max_score = gw_df["gw_points"].max()
+                top_managers = gw_df[gw_df["gw_points"] == max_score]
+                avg_score = round(gw_df["gw_points"].mean(), 1)
+                winners_names = " & ".join([f"{r['team_name']} ({r['manager_name']})" for _, r in top_managers.iterrows()])
+                is_fin = self.events.get(gw_num, {}).get("finished", False)
+                status_label = "✅ Selesai" if is_fin else "🔥 Live GW"
+                
+                weekly_winners_list.append({
+                    "Gameweek": f"GW {gw_num}",
+                    "Top Scorer (Tim & Manajer)": winners_names,
+                    "Skor Tertinggi": max_score,
+                    "Rata-Rata Liga": avg_score,
+                    "Selisih vs Rata-Rata": f"+{max_score - avg_score:.1f} pts",
+                    "Jumlah Pemenang": len(top_managers),
+                    "Status": status_label,
+                    "_gw_num": gw_num
+                })
+        weekly_winners_df = pd.DataFrame(weekly_winners_list)
+
         return {
             "league_info": league_info,
             "gameweek": gameweek,
@@ -445,5 +472,6 @@ class FPLMiniLeagueAnalyzer:
             "transfers_df": transfers_df,
             "top_transfers_in_df": top_in_df,
             "top_transfers_out_df": top_out_df,
+            "weekly_winners_df": weekly_winners_df,
             "raw_standings": standings_rows
         }

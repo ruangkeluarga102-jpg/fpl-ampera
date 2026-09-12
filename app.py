@@ -1279,6 +1279,12 @@ with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
         ownership_df.to_excel(writer, sheet_name="Ownership_EO", index=False)
     if not captaincy_df.empty:
         captaincy_df.to_excel(writer, sheet_name="Captains", index=False)
+    weekly_winners_df = data.get("weekly_winners_df", pd.DataFrame())
+    if not weekly_winners_df.empty:
+        weekly_clean = weekly_winners_df.drop(columns=[c for c in ["_gw_num"] if c in weekly_winners_df.columns])
+        weekly_clean.to_excel(writer, sheet_name="Weekly_Winners", index=False)
+    if not chips_df.empty:
+        chips_df.to_excel(writer, sheet_name="Chip_Tracker", index=False)
     if not history_df.empty:
         history_df.to_excel(writer, sheet_name="GW_History", index=False)
     transfers_export_df = data.get("transfers_df", pd.DataFrame())
@@ -2117,6 +2123,57 @@ with tab2:
             fig.update_yaxes(autorange="reversed")
             fig.update_layout(**plotly_layout)
             st.plotly_chart(fig, use_container_width=True)
+
+        # ----------------- REKAP PEMENANG MINGGUAN (HALL OF FAME) -----------------
+        st.markdown("---")
+        st.markdown("### 🏆 Rekap Pemenang Mingguan (Weekly Top Scorers)")
+        st.caption("Daftar manajer peraih skor poin tertinggi di setiap Gameweek dari GW1 sampai pekan terkini.")
+
+        weekly_winners_df = data.get("weekly_winners_df", pd.DataFrame())
+        if not weekly_winners_df.empty:
+            col_ws, col_wdl = st.columns([2, 1])
+            with col_ws:
+                w_search = st.text_input("🔍 Cari Manajer / Tim Pemenang:", "", placeholder="Ketik nama manajer / tim...", key="winner_search_input")
+
+            display_win_df = weekly_winners_df.copy()
+            if w_search:
+                display_win_df = display_win_df[
+                    display_win_df["Top Scorer (Tim & Manajer)"].str.contains(w_search, case=False, na=False)
+                ]
+
+            with col_wdl:
+                win_excel_buf = BytesIO()
+                with pd.ExcelWriter(win_excel_buf, engine="openpyxl") as writer:
+                    clean_win = display_win_df.drop(columns=[c for c in ["_gw_num"] if c in display_win_df.columns])
+                    clean_win.to_excel(writer, sheet_name="Weekly_Winners", index=False)
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                st.download_button(
+                    label="📊 Download Excel Pemenang (.xlsx)",
+                    data=win_excel_buf.getvalue(),
+                    file_name=f"FPL_Weekly_Winners_{league_id_input}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_weekly_winners_excel",
+                    use_container_width=True
+                )
+
+            # Display table
+            view_win_cols = [
+                "Gameweek",
+                "Top Scorer (Tim & Manajer)",
+                "Skor Tertinggi",
+                "Rata-Rata Liga",
+                "Selisih vs Rata-Rata",
+                "Status"
+            ]
+            final_win_df = display_win_df[[c for c in view_win_cols if c in display_win_df.columns]].reset_index(drop=True)
+
+            st.dataframe(
+                final_win_df,
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("Belum ada data riwayat pemenang mingguan yang tersedia.")
 
 # ================= TAB 3: CAPTAIN & EO =================
 with tab3:
