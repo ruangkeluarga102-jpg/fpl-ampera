@@ -133,6 +133,9 @@ class FPLMiniLeagueAnalyzer:
         chips_rows = []
         history_rows = []
 
+        event_obj = self.events.get(gameweek, {})
+        is_gw_finished = event_obj.get("finished", False)
+
         for item in standings_results:
             entry_id = item["entry"]
             picks_data = manager_picks_map.get(entry_id, {})
@@ -261,6 +264,7 @@ class FPLMiniLeagueAnalyzer:
                 })
 
             chips_rows.append({
+                "entry_id": entry_id,
                 "Rank": rank,
                 "Team Name": item.get("entry_name"),
                 "Manager": item.get("player_name"),
@@ -284,26 +288,52 @@ class FPLMiniLeagueAnalyzer:
             else:
                 overall_rank_val = entry_history.get("overall_rank", "-")
 
+            # Calculate live GW Points & Total Points accurately
+            transfer_hit = entry_history.get("event_transfers_cost", 0)
+            if is_gw_finished and gw_hist_matches:
+                gw_pts_val = gw_hist_matches[0].get("points", item.get("event_total", 0))
+                total_pts_val = gw_hist_matches[0].get("total_points", item.get("total", 0))
+            else:
+                squad_live_pts = sum(p["event_points_total"] for p in squad_elements if p["is_starting"] or (active_chip and active_chip.upper() == "BBOOST"))
+                gw_pts_val = squad_live_pts - transfer_hit
+                prev_stats = [g for g in hist_current if g.get("event") == gameweek - 1]
+                prev_total = prev_stats[0].get("total_points", 0) if prev_stats else (item.get("total", 0) - item.get("event_total", 0))
+                total_pts_val = prev_total + gw_pts_val
+
             standings_rows.append({
                 "Rank": rank,
                 "Move": movement,
                 "Team Name": item.get("entry_name"),
                 "Manager": item.get("player_name"),
-                "GW Points": item.get("event_total", entry_history.get("points", 0)),
-                "Total Points": item.get("total", entry_history.get("total_points", 0)),
+                "GW Points": gw_pts_val,
+                "Total Points": total_pts_val,
                 "Overall Rank": overall_rank_val,
                 "Captain": captain_name,
                 "Vice Captain": vc_name,
                 "Active Chip": active_chip.upper() if active_chip else "-",
                 "Transfers": entry_history.get("event_transfers", 0),
-                "Transfer Cost": entry_history.get("event_transfers_cost", 0),
+                "Transfer Cost": transfer_hit,
                 "Bench Points": entry_history.get("points_on_bench", 0),
                 "Team Value (£m)": entry_history.get("value", 0) / 10.0,
                 "Bank (£m)": entry_history.get("bank", 0) / 10.0,
                 "entry_id": entry_id,
                 "squad": squad_elements,
-                "gw_transfers": gw_transfers
+                "gw_transfers": gw_transfers,
+                "_last_rank": last_rank
             })
+
+        # If live gameweek, re-sort and calculate live ranks
+        if not is_gw_finished and standings_rows:
+            standings_rows.sort(key=lambda r: (r["Total Points"], r["GW Points"]), reverse=True)
+            for idx, r in enumerate(standings_rows, 1):
+                prev_r = r.get("_last_rank", idx)
+                r["Rank"] = idx
+                if prev_r == 0 or idx == prev_r:
+                    r["Move"] = "➖ 0"
+                elif idx < prev_r:
+                    r["Move"] = f"🔼 +{prev_r - idx}"
+                else:
+                    r["Move"] = f"🔽 -{idx - prev_r}"
 
         # Build DataFrames
         standings_df = pd.DataFrame(standings_rows)
