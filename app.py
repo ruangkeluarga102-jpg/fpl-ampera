@@ -740,7 +740,7 @@ st.markdown("""
     div[class*="st-key-std_scroll_liga"] div[data-testid="stHorizontalBlock"],
     div[class*="st-key-std_scroll_iuran"] div[data-testid="stHorizontalBlock"] {
         flex-wrap: nowrap !important;
-        min-width: 980px;
+        min-width: 1180px;
     }
     div[class*="st-key-std_scroll_liga"] div[data-testid="column"],
     div[class*="st-key-std_scroll_iuran"] div[data-testid="column"] {
@@ -1172,6 +1172,51 @@ def show_captain_owners_dialog(captain_name, standings_df):
         cols[3].markdown(f'<div class="std-points" style="padding: 6px 0;">{prow["GW Points"]}</div>', unsafe_allow_html=True)
         cols[4].markdown(f'<div class="std-total" style="padding: 6px 0;">{prow["Total Points"]}</div>', unsafe_allow_html=True)
 
+# ----------------- PLAYER TRANSFERS DETAIL (DIALOG) -----------------
+@st.dialog("🛒 Detail Transaksi Pemain di Liga", width="large")
+def show_player_transfers_dialog(player_name, action_type, transfers_df):
+    if action_type == "IN":
+        match_df = transfers_df[transfers_df["Player In"] == player_name]
+        st.markdown(f"#### 🟢 Manajer yang Membeli **{html.escape(player_name)}** ({len(match_df)} Manajer)")
+    else:
+        match_df = transfers_df[transfers_df["Player Out"] == player_name]
+        st.markdown(f"#### 🔴 Manajer yang Menjual **{html.escape(player_name)}** ({len(match_df)} Manajer)")
+
+    if not match_df.empty:
+        hd1, hd2, hd3, hd4, hd5 = st.columns([2.5, 2.5, 1.2, 1.2, 1.5])
+        hd1.markdown('<div class="std-col-head">Manajer & Tim</div>', unsafe_allow_html=True)
+        hd2.markdown('<div class="std-col-head">Ditukar dengan</div>', unsafe_allow_html=True)
+        hd3.markdown('<div class="std-col-head">Harga</div>', unsafe_allow_html=True)
+        hd4.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
+        hd5.markdown('<div class="std-col-head">Dampak Poin (Net)</div>', unsafe_allow_html=True)
+
+        for _, r in match_df.iterrows():
+            cd1, cd2, cd3, cd4, cd5 = st.columns([2.5, 2.5, 1.2, 1.2, 1.5])
+            cd1.markdown(f'<div style="padding: 6px 0;"><b>{html.escape(r["Team Name"])}</b><br><span class="std-muted" style="font-size:0.78rem;">{html.escape(r["Manager"])}</span></div>', unsafe_allow_html=True)
+            
+            if action_type == "IN":
+                cd2.markdown(f'<div style="padding: 6px 0;"><span style="color:#ff6b85;">🔴 {html.escape(r["Player Out"])}</span></div>', unsafe_allow_html=True)
+                cd3.markdown(f'<div style="padding: 6px 0;">£{r["In Price"]:.1f}m</div>', unsafe_allow_html=True)
+            else:
+                cd2.markdown(f'<div style="padding: 6px 0;"><span style="color:#00FF87;">🟢 {html.escape(r["Player In"])}</span></div>', unsafe_allow_html=True)
+                cd3.markdown(f'<div style="padding: 6px 0;">£{r["Out Price"]:.1f}m</div>', unsafe_allow_html=True)
+
+            hit_val = r["Transfer Cost"]
+            if hit_val > 0:
+                cd4.markdown(f'<div class="std-hit" style="padding: 6px 0;">-{hit_val} pts</div>', unsafe_allow_html=True)
+            else:
+                cd4.markdown('<div class="std-muted" style="padding: 6px 0;">Free</div>', unsafe_allow_html=True)
+
+            net_val = r["Net Gain"]
+            if net_val > 0:
+                cd5.markdown(f'<div style="padding: 6px 0; color:#00FF87; font-weight:800;">+{net_val} pts</div>', unsafe_allow_html=True)
+            elif net_val < 0:
+                cd5.markdown(f'<div style="padding: 6px 0; color:#ff6b85; font-weight:800;">{net_val} pts</div>', unsafe_allow_html=True)
+            else:
+                cd5.markdown('<div class="std-muted" style="padding: 6px 0;">0 pts</div>', unsafe_allow_html=True)
+    else:
+        st.info("Tidak ada data transaksi untuk pemain ini.")
+
 # ----------------- SIDEBAR CONTROLS -----------------
 st.sidebar.markdown(f"""
 <div class="sidebar-brand-card">
@@ -1592,7 +1637,7 @@ with tab1:
       with st.container(key="std_scroll_liga"):
         # Table Header
         h_rank, h_move, h_team, h_mgr, h_gw, h_tot, h_or, h_cap, h_tx, h_chip, h_hits, h_val = st.columns(
-            [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
+            [0.6, 0.9, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
         )
         h_rank.markdown('<div class="std-col-head">Rank</div>', unsafe_allow_html=True)
         h_move.markdown('<div class="std-col-head">Move</div>', unsafe_allow_html=True)
@@ -1622,7 +1667,7 @@ with tab1:
                 mv_html = f'<span class="move-chip flat">{html.escape(mv_str)}</span>'
 
             c_rank, c_move, c_team, c_mgr, c_gw, c_tot, c_or, c_cap, c_tx, c_chip, c_hits, c_val = st.columns(
-                [0.6, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
+                [0.6, 0.9, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
             )
 
             c_rank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{r_val}</span></div>', unsafe_allow_html=True)
@@ -1760,7 +1805,7 @@ with tab_paid:
         with st.container(key="std_scroll_iuran"):
             # Table Header
             h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
-                [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
+                [0.9, 0.8, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
             )
             h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
             h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
@@ -1782,7 +1827,7 @@ with tab_paid:
                 med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
 
                 c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
-                    [0.8, 0.7, 1.8, 1.4, 0.7, 0.8, 0.8, 1.3, 1.6, 0.8, 0.6, 0.8]
+                    [0.9, 0.8, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
                 )
 
                 c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
@@ -1897,17 +1942,19 @@ with tab_transfers:
         with col_c1:
             st.markdown("##### 🟢 Pemain Paling Banyak Dibeli (Top Transfers IN)")
             if not top_in_df.empty:
+                plot_in_df = top_in_df.head(8)
                 fig_in = px.bar(
-                    top_in_df.head(8),
-                    x="Player",
-                    y="Transfers IN",
+                    plot_in_df,
+                    x="Transfers IN",
+                    y="Player",
+                    orientation="h",
                     text="Transfers IN",
                     color="Transfers IN",
                     color_continuous_scale=[[0, "#004d28"], [1, "#00FF87"]],
                     template="plotly_dark"
                 )
                 fig_in.update_traces(
-                    textposition="outside",
+                    textposition="inside",
                     textfont=dict(size=12, color="#FFFFFF", family="Space Grotesk")
                 )
                 fig_in.update_layout(
@@ -1915,29 +1962,38 @@ with tab_transfers:
                     coloraxis_showscale=False,
                     paper_bgcolor="rgba(0,0,0,0)",
                     plot_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=10, r=10, t=25, b=10),
-                    height=320,
-                    xaxis_title="",
+                    margin=dict(l=10, r=20, t=15, b=10),
+                    height=max(260, len(plot_in_df) * 38),
+                    xaxis_title="Jumlah Manajer Membeli",
                     yaxis_title="",
-                    xaxis=dict(tickangle=-35, tickfont=dict(size=11, color="#E2E8F0")),
-                    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)")
+                    yaxis=dict(autorange="reversed", tickfont=dict(size=12, color="#E2E8F0")),
+                    xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1)
                 )
                 st.plotly_chart(fig_in, use_container_width=True)
+
+                st.markdown("<span style='font-size:0.82rem; color:#8c9ba5;'>💡 Klik nama pemain di bawah untuk melihat siapa saja manajer yang membeli:</span>", unsafe_allow_html=True)
+                p_cols = st.columns(2)
+                for idx, (_, prow) in enumerate(plot_in_df.iterrows()):
+                    col_idx = idx % 2
+                    if p_cols[col_idx].button(f"🟢 {prow['Player']} ({prow['Transfers IN']})", key=f"btn_in_{idx}_{prow['Player']}", use_container_width=True):
+                        show_player_transfers_dialog(prow['Player'], "IN", transfers_df)
         
         with col_c2:
             st.markdown("##### 🔴 Pemain Paling Banyak Dijual (Top Transfers OUT)")
             if not top_out_df.empty:
+                plot_out_df = top_out_df.head(8)
                 fig_out = px.bar(
-                    top_out_df.head(8),
-                    x="Player",
-                    y="Transfers OUT",
+                    plot_out_df,
+                    x="Transfers OUT",
+                    y="Player",
+                    orientation="h",
                     text="Transfers OUT",
                     color="Transfers OUT",
                     color_continuous_scale=[[0, "#4d0014"], [1, "#ff6b85"]],
                     template="plotly_dark"
                 )
                 fig_out.update_traces(
-                    textposition="outside",
+                    textposition="inside",
                     textfont=dict(size=12, color="#FFFFFF", family="Space Grotesk")
                 )
                 fig_out.update_layout(
@@ -1945,14 +2001,21 @@ with tab_transfers:
                     coloraxis_showscale=False,
                     paper_bgcolor="rgba(0,0,0,0)",
                     plot_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=10, r=10, t=25, b=10),
-                    height=320,
-                    xaxis_title="",
+                    margin=dict(l=10, r=20, t=15, b=10),
+                    height=max(260, len(plot_out_df) * 38),
+                    xaxis_title="Jumlah Manajer Menjual",
                     yaxis_title="",
-                    xaxis=dict(tickangle=-35, tickfont=dict(size=11, color="#E2E8F0")),
-                    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)")
+                    yaxis=dict(autorange="reversed", tickfont=dict(size=12, color="#E2E8F0")),
+                    xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1)
                 )
                 st.plotly_chart(fig_out, use_container_width=True)
+
+                st.markdown("<span style='font-size:0.82rem; color:#8c9ba5;'>💡 Klik nama pemain di bawah untuk melihat siapa saja manajer yang menjual:</span>", unsafe_allow_html=True)
+                p_cols_out = st.columns(2)
+                for idx, (_, prow) in enumerate(plot_out_df.iterrows()):
+                    col_idx = idx % 2
+                    if p_cols_out[col_idx].button(f"🔴 {prow['Player']} ({prow['Transfers OUT']})", key=f"btn_out_{idx}_{prow['Player']}", use_container_width=True):
+                        show_player_transfers_dialog(prow['Player'], "OUT", transfers_df)
 
         st.markdown("---")
         st.markdown("##### 📋 Tabel Rekap Transfer Seluruh Manajer")
