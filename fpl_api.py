@@ -5,14 +5,20 @@ Provides methods to fetch official Fantasy Premier League data.
 
 import requests
 from typing import Dict, Any, List, Optional
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 import time
 
 BASE_URL = "https://fantasy.premierleague.com/api"
 
 class FPLApiClient:
     """Client for interacting with official Fantasy Premier League (FPL) endpoints."""
-    def __init__(self, timeout: int = 15):
+    def __init__(self, timeout: int = 8):
         self.session = requests.Session()
+        retries = Retry(total=2, backoff_factor=0.2, status_forcelist=[500, 502, 503, 504])
+        adapter = HTTPAdapter(pool_connections=16, pool_maxsize=32, max_retries=retries)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         })
@@ -36,7 +42,7 @@ class FPLApiClient:
 
     def get_current_gameweek(self) -> int:
         """Find the current or latest active gameweek."""
-        data = self.get_bootstrap_static(force_refresh=True)
+        data = self.get_bootstrap_static(force_refresh=False, max_age_seconds=60)
         for event in data.get("events", []):
             if event.get("is_current"):
                 return event.get("id")
