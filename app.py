@@ -1369,37 +1369,40 @@ st.sidebar.download_button(
     use_container_width=True
 )
 
-# ----------------- SIDEBAR PENGATURAN LIGA IURAN -----------------
-paid_settings = get_paid_league_settings(league_id_input)
-all_mgr_dict = {int(row["entry_id"]): f"{row['Team Name']} ({row['Manager']})" for _, row in standings_df.iterrows()} if not standings_df.empty else {}
+# ----------------- FITUR LIGA IURAN (FLAG) -----------------
+SHOW_PAID_LEAGUE = False  # Set True jika ingin mengaktifkan kembali fitur Liga Iuran
 
-st.sidebar.markdown("---")
-with st.sidebar.expander("💰 Pengaturan Liga Iuran", expanded=False):
-    st.caption("Pilih manajer yang ikut iuran & atur nominal:")
-    
-    saved_ids = [int(eid) for eid in paid_settings.get("paid_entry_ids", []) if int(eid) in all_mgr_dict]
-    
-    selected_paid_ids = st.multiselect(
-        "Peserta yang Ikut Iuran:",
-        options=list(all_mgr_dict.keys()),
-        default=saved_ids,
-        format_func=lambda eid: all_mgr_dict.get(eid, f"ID {eid}"),
-        key=f"paid_mgr_select_{league_id_input}",
-        help="Pilih manajer yang sudah membayar iuran"
-    )
-    
-    fee_val = st.number_input(
-        "Biaya Iuran per Orang (Rp):",
-        min_value=0,
-        value=int(paid_settings.get("fee", 50000)),
-        step=10000,
-        key=f"fee_val_{league_id_input}"
-    )
-    
-    if st.button("💾 SIMPAN PESERTA IURAN", use_container_width=True, type="secondary"):
-        save_paid_league_settings(league_id_input, fee_val, selected_paid_ids, paid_settings.get("p1", 50), paid_settings.get("p2", 30), paid_settings.get("p3", 20))
-        st.toast(f"✅ Tersimpan! {len(selected_paid_ids)} peserta terdaftar di Liga Iuran.", icon="💰")
-        st.rerun()
+if SHOW_PAID_LEAGUE:
+    paid_settings = get_paid_league_settings(league_id_input)
+    all_mgr_dict = {int(row["entry_id"]): f"{row['Team Name']} ({row['Manager']})" for _, row in standings_df.iterrows()} if not standings_df.empty else {}
+
+    st.sidebar.markdown("---")
+    with st.sidebar.expander("💰 Pengaturan Liga Iuran", expanded=False):
+        st.caption("Pilih manajer yang ikut iuran & atur nominal:")
+        
+        saved_ids = [int(eid) for eid in paid_settings.get("paid_entry_ids", []) if int(eid) in all_mgr_dict]
+        
+        selected_paid_ids = st.multiselect(
+            "Peserta yang Ikut Iuran:",
+            options=list(all_mgr_dict.keys()),
+            default=saved_ids,
+            format_func=lambda eid: all_mgr_dict.get(eid, f"ID {eid}"),
+            key=f"paid_mgr_select_{league_id_input}",
+            help="Pilih manajer yang sudah membayar iuran"
+        )
+        
+        fee_val = st.number_input(
+            "Biaya Iuran per Orang (Rp):",
+            min_value=0,
+            value=int(paid_settings.get("fee", 50000)),
+            step=10000,
+            key=f"fee_val_{league_id_input}"
+        )
+        
+        if st.button("💾 SIMPAN PESERTA IURAN", use_container_width=True, type="secondary"):
+            save_paid_league_settings(league_id_input, fee_val, selected_paid_ids, paid_settings.get("p1", 50), paid_settings.get("p2", 30), paid_settings.get("p3", 20))
+            st.toast(f"✅ Tersimpan! {len(selected_paid_ids)} peserta terdaftar di Liga Iuran.", icon="💰")
+            st.rerun()
 
 # ----------------- HERO BANNER -----------------
 st.markdown(f"""
@@ -1608,15 +1611,23 @@ if not standings_df.empty:
 st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
 # ----------------- ELEGANT TABS -----------------
-tab1, tab_paid, tab_transfers, tab2, tab3, tab4, tab5 = st.tabs([
+tab_labels = [
     "Klasemen Liga", 
-    "Klasemen Iuran", 
     "Bursa Transfer", 
     "Tren & Performa", 
     "Kapten & EO", 
     "Pelacak Chip", 
     "Head-to-Head"
-])
+]
+if SHOW_PAID_LEAGUE:
+    tab_labels.insert(1, "Klasemen Iuran")
+
+created_tabs = st.tabs(tab_labels)
+if SHOW_PAID_LEAGUE:
+    tab1, tab_paid, tab_transfers, tab2, tab3, tab4, tab5 = created_tabs
+else:
+    tab1, tab_transfers, tab2, tab3, tab4, tab5 = created_tabs
+    tab_paid = None
 
 # ================= TAB 1: STANDINGS =================
 with tab1:
@@ -1707,162 +1718,163 @@ with tab1:
         st.info("Belum ada data klasemen untuk ditampilkan.")
 
 # ================= TAB PAID: KLASEMEN IURAN =================
-with tab_paid:
-    st.markdown("### 💰 Klasemen Khusus Liga Iuran")
+if SHOW_PAID_LEAGUE and tab_paid is not None:
+    with tab_paid:
+        st.markdown("### 💰 Klasemen Khusus Liga Iuran")
     
-    paid_ids_set = set(paid_settings.get("paid_entry_ids", []))
-    paid_df = standings_df[standings_df["entry_id"].isin(paid_ids_set)].copy() if not standings_df.empty else pd.DataFrame()
+        paid_ids_set = set(paid_settings.get("paid_entry_ids", []))
+        paid_df = standings_df[standings_df["entry_id"].isin(paid_ids_set)].copy() if not standings_df.empty else pd.DataFrame()
     
-    if paid_df.empty:
-        st.info("💡 **Belum ada peserta yang dipilih untuk Liga Iuran.**\n\nSilakan buka menu **'💰 Pengaturan Liga Iuran'** di sidebar sebelah kiri untuk mencentang manajer yang sudah membayar iuran.")
-    else:
-        # Calculate Paid Rank
-        paid_df = paid_df.sort_values(by=["Total Points", "GW Points"], ascending=[False, False]).reset_index(drop=True)
-        paid_df["Paid_Rank"] = range(1, len(paid_df) + 1)
+        if paid_df.empty:
+            st.info("💡 **Belum ada peserta yang dipilih untuk Liga Iuran.**\n\nSilakan buka menu **'💰 Pengaturan Liga Iuran'** di sidebar sebelah kiri untuk mencentang manajer yang sudah membayar iuran.")
+        else:
+            # Calculate Paid Rank
+            paid_df = paid_df.sort_values(by=["Total Points", "GW Points"], ascending=[False, False]).reset_index(drop=True)
+            paid_df["Paid_Rank"] = range(1, len(paid_df) + 1)
         
-        # Prize Pool Stats
-        fee_amount = int(paid_settings.get("fee", 50000))
-        total_pool = len(paid_df) * fee_amount
-        p1_cut = int(total_pool * paid_settings.get("p1", 50) / 100)
-        p2_cut = int(total_pool * paid_settings.get("p2", 30) / 100)
-        p3_cut = int(total_pool * paid_settings.get("p3", 20) / 100)
+            # Prize Pool Stats
+            fee_amount = int(paid_settings.get("fee", 50000))
+            total_pool = len(paid_df) * fee_amount
+            p1_cut = int(total_pool * paid_settings.get("p1", 50) / 100)
+            p2_cut = int(total_pool * paid_settings.get("p2", 30) / 100)
+            p3_cut = int(total_pool * paid_settings.get("p3", 20) / 100)
         
-        pk1, pk2, pk3, pk4 = st.columns(4)
-        with pk1:
-            st.markdown(f"""
-            <div class="kpi-card kpi-accent-purple">
-                <div class="kpi-header">
-                    <span class="kpi-label">Total Prize Pool</span>
-                    {SVG_ICONS['trophy']}
+            pk1, pk2, pk3, pk4 = st.columns(4)
+            with pk1:
+                st.markdown(f"""
+                <div class="kpi-card kpi-accent-purple">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Total Prize Pool</span>
+                        {SVG_ICONS['trophy']}
+                    </div>
+                    <div class="kpi-value" style="font-size: 1.45rem;">Rp {total_pool:,.0f}</div>
+                    <div class="kpi-subtext">{len(paid_df)} Peserta • Rp {fee_amount:,.0f}/org</div>
                 </div>
-                <div class="kpi-value" style="font-size: 1.45rem;">Rp {total_pool:,.0f}</div>
-                <div class="kpi-subtext">{len(paid_df)} Peserta • Rp {fee_amount:,.0f}/org</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with pk2:
-            st.markdown(f"""
-            <div class="kpi-card kpi-accent-green">
-                <div class="kpi-header">
-                    <span class="kpi-label">Juara 1 ({paid_settings.get('p1', 50)}%)</span>
-                    <span class="rank-badge gold" style="width: 22px; height: 22px; font-size: 0.75rem;">1</span>
+                """, unsafe_allow_html=True)
+            with pk2:
+                st.markdown(f"""
+                <div class="kpi-card kpi-accent-green">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Juara 1 ({paid_settings.get('p1', 50)}%)</span>
+                        <span class="rank-badge gold" style="width: 22px; height: 22px; font-size: 0.75rem;">1</span>
+                    </div>
+                    <div class="kpi-value" style="font-size: 1.45rem; color: #00FF87;">Rp {p1_cut:,.0f}</div>
+                    <div class="kpi-subtext">Estimasi Hadiah Peringkat 1</div>
                 </div>
-                <div class="kpi-value" style="font-size: 1.45rem; color: #00FF87;">Rp {p1_cut:,.0f}</div>
-                <div class="kpi-subtext">Estimasi Hadiah Peringkat 1</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with pk3:
-            st.markdown(f"""
-            <div class="kpi-card kpi-accent-cyan">
-                <div class="kpi-header">
-                    <span class="kpi-label">Juara 2 ({paid_settings.get('p2', 30)}%)</span>
-                    <span class="rank-badge silver" style="width: 22px; height: 22px; font-size: 0.75rem;">2</span>
+                """, unsafe_allow_html=True)
+            with pk3:
+                st.markdown(f"""
+                <div class="kpi-card kpi-accent-cyan">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Juara 2 ({paid_settings.get('p2', 30)}%)</span>
+                        <span class="rank-badge silver" style="width: 22px; height: 22px; font-size: 0.75rem;">2</span>
+                    </div>
+                    <div class="kpi-value" style="font-size: 1.45rem; color: #02EFFF;">Rp {p2_cut:,.0f}</div>
+                    <div class="kpi-subtext">Estimasi Hadiah Peringkat 2</div>
                 </div>
-                <div class="kpi-value" style="font-size: 1.45rem; color: #02EFFF;">Rp {p2_cut:,.0f}</div>
-                <div class="kpi-subtext">Estimasi Hadiah Peringkat 2</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with pk4:
-            st.markdown(f"""
-            <div class="kpi-card kpi-accent-pink">
-                <div class="kpi-header">
-                    <span class="kpi-label">Juara 3 ({paid_settings.get('p3', 20)}%)</span>
-                    <span class="rank-badge bronze" style="width: 22px; height: 22px; font-size: 0.75rem;">3</span>
+                """, unsafe_allow_html=True)
+            with pk4:
+                st.markdown(f"""
+                <div class="kpi-card kpi-accent-pink">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Juara 3 ({paid_settings.get('p3', 20)}%)</span>
+                        <span class="rank-badge bronze" style="width: 22px; height: 22px; font-size: 0.75rem;">3</span>
+                    </div>
+                    <div class="kpi-value" style="font-size: 1.45rem; color: #E90052;">Rp {p3_cut:,.0f}</div>
+                    <div class="kpi-subtext">Estimasi Hadiah Peringkat 3</div>
                 </div>
-                <div class="kpi-value" style="font-size: 1.45rem; color: #E90052;">Rp {p3_cut:,.0f}</div>
-                <div class="kpi-subtext">Estimasi Hadiah Peringkat 3</div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
         
-        st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-bottom: 18px;'></div>", unsafe_allow_html=True)
         
-        # Search Filter for Paid Standings
-        col_ps, col_pdl = st.columns([2, 1])
-        with col_ps:
-            paid_search = st.text_input("🔍 Cari Peserta Iuran:", "", placeholder="Ketik nama tim / manajer...", key="paid_search_input")
+            # Search Filter for Paid Standings
+            col_ps, col_pdl = st.columns([2, 1])
+            with col_ps:
+                paid_search = st.text_input("🔍 Cari Peserta Iuran:", "", placeholder="Ketik nama tim / manajer...", key="paid_search_input")
         
-        display_paid_df = paid_df.copy()
-        if paid_search:
-            display_paid_df = display_paid_df[
-                display_paid_df["Team Name"].str.contains(paid_search, case=False, na=False) |
-                display_paid_df["Manager"].str.contains(paid_search, case=False, na=False)
-            ]
+            display_paid_df = paid_df.copy()
+            if paid_search:
+                display_paid_df = display_paid_df[
+                    display_paid_df["Team Name"].str.contains(paid_search, case=False, na=False) |
+                    display_paid_df["Manager"].str.contains(paid_search, case=False, na=False)
+                ]
         
-        with col_pdl:
-            paid_excel_buf = BytesIO()
-            with pd.ExcelWriter(paid_excel_buf, engine="openpyxl") as writer:
-                clean_paid = paid_df.drop(columns=[c for c in ["squad"] if c in paid_df.columns])
-                clean_paid.to_excel(writer, sheet_name="Paid_Standings", index=False)
-            st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-            st.download_button(
-                label="📊 Export Excel Iuran",
-                data=paid_excel_buf.getvalue(),
-                file_name=f"FPL_Paid_League_{league_id_input}_GW{selected_gw}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key="dl_paid_excel",
-                use_container_width=True
-            )
+            with col_pdl:
+                paid_excel_buf = BytesIO()
+                with pd.ExcelWriter(paid_excel_buf, engine="openpyxl") as writer:
+                    clean_paid = paid_df.drop(columns=[c for c in ["squad"] if c in paid_df.columns])
+                    clean_paid.to_excel(writer, sheet_name="Paid_Standings", index=False)
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                st.download_button(
+                    label="📊 Export Excel Iuran",
+                    data=paid_excel_buf.getvalue(),
+                    file_name=f"FPL_Paid_League_{league_id_input}_GW{selected_gw}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="dl_paid_excel",
+                    use_container_width=True
+                )
         
-        with st.container(key="std_scroll_iuran"):
-            # Table Header
-            h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
-                [0.9, 0.8, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
-            )
-            h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
-            h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
-            h_pteam.markdown('<div class="std-col-head">Tim (Klik detail)</div>', unsafe_allow_html=True)
-            h_pmgr.markdown('<div class="std-col-head">Manajer</div>', unsafe_allow_html=True)
-            h_pgw.markdown('<div class="std-col-head">GW Pts</div>', unsafe_allow_html=True)
-            h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
-            h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
-            h_pcap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
-            h_ptx.markdown('<div class="std-col-head">Transfer</div>', unsafe_allow_html=True)
-            h_pchip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
-            h_phits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
-            h_pval.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
-
-            chips_data = data.get("chips_df")
-
-            for _, row in display_paid_df.iterrows():
-                pr_val = int(row["Paid_Rank"])
-                med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
-
-                c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
+            with st.container(key="std_scroll_iuran"):
+                # Table Header
+                h_prank, h_porg, h_pteam, h_pmgr, h_pgw, h_ptot, h_por, h_pcap, h_ptx, h_pchip, h_phits, h_pval = st.columns(
                     [0.9, 0.8, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
                 )
+                h_prank.markdown('<div class="std-col-head">Rank Iuran</div>', unsafe_allow_html=True)
+                h_porg.markdown('<div class="std-col-head">Rank Asli</div>', unsafe_allow_html=True)
+                h_pteam.markdown('<div class="std-col-head">Tim (Klik detail)</div>', unsafe_allow_html=True)
+                h_pmgr.markdown('<div class="std-col-head">Manajer</div>', unsafe_allow_html=True)
+                h_pgw.markdown('<div class="std-col-head">GW Pts</div>', unsafe_allow_html=True)
+                h_ptot.markdown('<div class="std-col-head">Total</div>', unsafe_allow_html=True)
+                h_por.markdown('<div class="std-col-head">Overall</div>', unsafe_allow_html=True)
+                h_pcap.markdown('<div class="std-col-head">Kapten</div>', unsafe_allow_html=True)
+                h_ptx.markdown('<div class="std-col-head">Transfer</div>', unsafe_allow_html=True)
+                h_pchip.markdown('<div class="std-col-head">Chip</div>', unsafe_allow_html=True)
+                h_phits.markdown('<div class="std-col-head">Hits</div>', unsafe_allow_html=True)
+                h_pval.markdown('<div class="std-col-head">Nilai</div>', unsafe_allow_html=True)
 
-                c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
-                c_porg.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">#{row["Rank"]}</div>', unsafe_allow_html=True)
+                chips_data = data.get("chips_df")
 
-                btn_label = f"**{_md_escape(row['Team Name'])}**"
-                if c_pteam.button(btn_label, key=f"paidmgr_{row['entry_id']}", help="Klik untuk membuka susunan squad & detail"):
-                    show_manager_dialog(row, chips_data)
-                c_pmgr.markdown(f'<div class="std-muted" style="padding: 10px 0; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Manager"]))}</div>', unsafe_allow_html=True)
+                for _, row in display_paid_df.iterrows():
+                    pr_val = int(row["Paid_Rank"])
+                    med_cls = {1: "gold", 2: "silver", 3: "bronze"}.get(pr_val, "")
 
-                c_pgw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
-                c_ptot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
+                    c_prank, c_porg, c_pteam, c_pmgr, c_pgw, c_ptot, c_por, c_pcap, c_ptx, c_pchip, c_phits, c_pval = st.columns(
+                        [0.9, 0.8, 2.2, 2.0, 0.9, 0.9, 1.1, 1.8, 1.2, 0.9, 0.7, 1.0]
+                    )
 
-                or_val = row.get("Overall Rank", "-")
-                or_fmt = f"{or_val:,}" if isinstance(or_val, (int, float)) else str(or_val)
-                c_por.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.8rem;">{or_fmt}</div>', unsafe_allow_html=True)
+                    c_prank.markdown(f'<div style="padding: 6px 0;"><span class="rank-badge {med_cls}">{pr_val}</span></div>', unsafe_allow_html=True)
+                    c_porg.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem;">#{row["Rank"]}</div>', unsafe_allow_html=True)
 
-                c_pcap.markdown(f'<div style="padding: 6px 0; font-size: 0.82rem; color: #E2E8F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Captain"]))}</div>', unsafe_allow_html=True)
+                    btn_label = f"**{_md_escape(row['Team Name'])}**"
+                    if c_pteam.button(btn_label, key=f"paidmgr_{row['entry_id']}", help="Klik untuk membuka susunan squad & detail"):
+                        show_manager_dialog(row, chips_data)
+                    c_pmgr.markdown(f'<div class="std-muted" style="padding: 10px 0; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Manager"]))}</div>', unsafe_allow_html=True)
 
-                # Quick Transfer Column
-                c_ptx.markdown(f'<div style="padding: 8px 0;">{format_quick_transfers(row)}</div>', unsafe_allow_html=True)
+                    c_pgw.markdown(f'<div class="std-points" style="padding: 6px 0;">{row["GW Points"]}</div>', unsafe_allow_html=True)
+                    c_ptot.markdown(f'<div class="std-total" style="padding: 6px 0;">{row["Total Points"]}</div>', unsafe_allow_html=True)
 
-                chip_val = str(row["Active Chip"])
-                if chip_val and chip_val != "-":
-                    c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag" title="{html.escape(chip_val)}">{html.escape(_chip_short(chip_val))}</span></div>', unsafe_allow_html=True)
-                else:
-                    c_pchip.markdown('<div class="std-muted" style="padding: 6px 0;">-</div>', unsafe_allow_html=True)
+                    or_val = row.get("Overall Rank", "-")
+                    or_fmt = f"{or_val:,}" if isinstance(or_val, (int, float)) else str(or_val)
+                    c_por.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.8rem;">{or_fmt}</div>', unsafe_allow_html=True)
 
-                hits_val = row.get("Transfer Cost", 0) or 0
-                if hits_val:
-                    c_phits.markdown(f'<div class="std-hit" style="padding: 6px 0;">-{hits_val}</div>', unsafe_allow_html=True)
-                else:
-                    c_phits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
+                    c_pcap.markdown(f'<div style="padding: 6px 0; font-size: 0.82rem; color: #E2E8F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{html.escape(str(row["Captain"]))}</div>', unsafe_allow_html=True)
 
-                c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
+                    # Quick Transfer Column
+                    c_ptx.markdown(f'<div style="padding: 8px 0;">{format_quick_transfers(row)}</div>', unsafe_allow_html=True)
+
+                    chip_val = str(row["Active Chip"])
+                    if chip_val and chip_val != "-":
+                        c_pchip.markdown(f'<div style="padding: 6px 0;"><span class="std-chip-tag" title="{html.escape(chip_val)}">{html.escape(_chip_short(chip_val))}</span></div>', unsafe_allow_html=True)
+                    else:
+                        c_pchip.markdown('<div class="std-muted" style="padding: 6px 0;">-</div>', unsafe_allow_html=True)
+
+                    hits_val = row.get("Transfer Cost", 0) or 0
+                    if hits_val:
+                        c_phits.markdown(f'<div class="std-hit" style="padding: 6px 0;">-{hits_val}</div>', unsafe_allow_html=True)
+                    else:
+                        c_phits.markdown('<div class="std-muted" style="padding: 6px 0;">0</div>', unsafe_allow_html=True)
+
+                    c_pval.markdown(f'<div class="std-muted" style="padding: 6px 0; font-size: 0.82rem; white-space: nowrap;">£{row.get("Team Value (£m)", 0):.1f}m</div>', unsafe_allow_html=True)
 
 # ================= TAB: BURSA TRANSFER =================
 with tab_transfers:
