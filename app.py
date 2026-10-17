@@ -2129,76 +2129,342 @@ with tab2:
     if history_df.empty:
         st.info("Data riwayat gameweek akan muncul setelah gameweek berjalan dan ada pertandingan yang selesai.")
     else:
-        col_ctrl1, col_ctrl2 = st.columns([1, 1])
+        # Pre-compute season rankings & metrics
+        hist_enhanced = history_df.copy()
+        hist_enhanced["league_rank"] = hist_enhanced.groupby("gameweek")["total_points"].rank(ascending=False, method="min").astype(int)
+        leader_pts_per_gw = hist_enhanced.groupby("gameweek")["total_points"].transform("max")
+        hist_enhanced["gap_to_leader"] = hist_enhanced["total_points"] - leader_pts_per_gw
+
+        league_avg_per_gw = hist_enhanced.groupby("gameweek").agg(
+            avg_total_points=("total_points", "mean"),
+            avg_gw_points=("gw_points", "mean")
+        ).reset_index()
+
+        # ----------------- 4 KPI SEASON HIGHLIGHT CARDS -----------------
+        leader_team = standings_df.iloc[0]["Team Name"] if not standings_df.empty else "-"
+        leader_pts = standings_df.iloc[0]["Total Points"] if not standings_df.empty and "Total Points" in standings_df.columns else 0
+        gap_p2 = (standings_df.iloc[0]["Total Points"] - standings_df.iloc[1]["Total Points"]) if len(standings_df) > 1 else 0
+
+        first_gw = hist_enhanced["gameweek"].min()
+        last_gw = hist_enhanced["gameweek"].max()
+        first_ranks = hist_enhanced[hist_enhanced["gameweek"] == first_gw].set_index("entry_id")["league_rank"]
+        last_ranks = hist_enhanced[hist_enhanced["gameweek"] == last_gw].set_index("entry_id")["league_rank"]
+        common_ids = first_ranks.index.intersection(last_ranks.index)
+
+        best_climber_name = "-"
+        best_climber_delta = 0
+        if len(common_ids) > 0:
+            rank_deltas = (first_ranks.loc[common_ids] - last_ranks.loc[common_ids]).sort_values(ascending=False)
+            if not rank_deltas.empty and rank_deltas.iloc[0] > 0:
+                best_climber_id = rank_deltas.index[0]
+                best_climber_delta = int(rank_deltas.iloc[0])
+                best_climber_name = hist_enhanced[hist_enhanced["entry_id"] == best_climber_id]["team_name"].iloc[0]
+            else:
+                best_climber_name = standings_df.iloc[0]["Team Name"] if not standings_df.empty else "-"
+                best_climber_delta = 0
+
+        best_gw_row = hist_enhanced.loc[hist_enhanced["gw_points"].idxmax()] if not hist_enhanced.empty else None
+        current_league_avg = standings_df["Total Points"].mean() if not standings_df.empty and "Total Points" in standings_df.columns else 0
+
+        sk1, sk2, sk3, sk4 = st.columns(4)
+        with sk1:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-purple">
+                <div class="kpi-header">
+                    <span class="kpi-label">Leader Klasemen</span>
+                    {SVG_ICONS['trophy']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.25rem;">{leader_team}</div>
+                <div class="kpi-subtext">Total: <b>{leader_pts} pts</b> (unggul +{gap_p2} pts dari P2)</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with sk2:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-green">
+                <div class="kpi-header">
+                    <span class="kpi-label">Rocket of the Season</span>
+                    <span style="color: #00FF87; font-weight: 800; font-size: 0.8rem;">🚀 NAIK</span>
+                </div>
+                <div class="kpi-value" style="font-size: 1.25rem;">{best_climber_name}</div>
+                <div class="kpi-subtext">Melesat <b>+{best_climber_delta} posisi</b> sejak GW{first_gw}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with sk3:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-cyan">
+                <div class="kpi-header">
+                    <span class="kpi-label">Rekor Skor 1 GW</span>
+                    {SVG_ICONS['flame']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.25rem;">{best_gw_row['gw_points'] if best_gw_row is not None else '-'} pts</div>
+                <div class="kpi-subtext">{best_gw_row['team_name'] if best_gw_row is not None else '-'} (GW{best_gw_row['gameweek'] if best_gw_row is not None else '-'})</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with sk4:
+            st.markdown(f"""
+            <div class="kpi-card kpi-accent-pink">
+                <div class="kpi-header">
+                    <span class="kpi-label">Rata-Rata Total Liga</span>
+                    {SVG_ICONS['chart']}
+                </div>
+                <div class="kpi-value" style="font-size: 1.25rem;">{current_league_avg:.1f} <span style="font-size: 0.9rem; color: #8c9ba5;">pts</span></div>
+                <div class="kpi-subtext">Benchmark rata-rata seluruh manajer</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-bottom: 22px;'></div>", unsafe_allow_html=True)
+
+        # ----------------- CONTROLS -----------------
+        all_teams_in_order = standings_df["Team Name"].tolist() if not standings_df.empty else []
+        leader_team_name = all_teams_in_order[0] if all_teams_in_order else ""
+
+        col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([1.4, 1.0, 1.2])
         with col_ctrl1:
             chart_type = st.selectbox(
                 "Pilih Tampilan Grafik:", 
-                ["Akumulasi Total Poin", "Poin Per Gameweek", "Pergerakan Overall Rank FPL"]
+                [
+                    "🏆 Perebutan Peringkat Liga (Rank Race)",
+                    "📈 Akumulasi Total Poin (+ Benchmark Liga)",
+                    "🎯 Selisih Poin vs Pemuncak (Gap to Leader)",
+                    "⚡ Skor Poin Per Gameweek",
+                    "🌍 Pergerakan Overall Rank Dunia"
+                ],
+                index=1
             )
+
         with col_ctrl2:
+            team_selection_mode = st.radio(
+                "Mode Filter Tim:",
+                ["Top Manajer", "Pilih Tim Manual"],
+                horizontal=True
+            )
+
+        with col_ctrl3:
+            highlight_team = st.selectbox(
+                "🎯 Sorot Tim Tertentu (Focus Mode):",
+                ["🌟 Tampilkan Semua Berwarna"] + all_teams_in_order,
+                index=0,
+                help="Pilih satu tim untuk disorot jelas & berpendar neon hijau. Tim lainnya akan dibuat redup agar grafik tidak berantakan (anti-spaghetti)."
+            )
+
+        if team_selection_mode == "Top Manajer":
             top_mgrs_count = st.slider(
                 "Jumlah Manajer Teratas yang Ditampilkan:", 
-                3, min(25, total_managers), min(8, total_managers)
+                min_value=3, 
+                max_value=min(25, total_managers), 
+                value=min(10, total_managers)
             )
+            selected_teams = standings_df.head(top_mgrs_count)["Team Name"].tolist()
+        else:
+            default_picks = all_teams_in_order[:min(5, len(all_teams_in_order))]
+            selected_teams = st.multiselect(
+                "Pilih Tim yang Ingin Dibandingkan (Head-to-Head):",
+                options=all_teams_in_order,
+                default=default_picks
+            )
+            if not selected_teams:
+                selected_teams = default_picks
 
-        top_entry_ids = standings_df.head(top_mgrs_count)["entry_id"].tolist()
-        filtered_hist = history_df[history_df["entry_id"].isin(top_entry_ids)]
+        # Ensure highlighted team is included in plot
+        if highlight_team != "🌟 Tampilkan Semua Berwarna" and highlight_team not in selected_teams:
+            selected_teams.append(highlight_team)
 
-        plotly_layout = dict(
+        # 24 vibrant cyber/neon colors
+        PALETTE = [
+            "#00FF87", "#02EFFF", "#FFE27A", "#FF007F", "#A855F7",
+            "#FF5E57", "#38BDF8", "#F97316", "#EC4899", "#10B981",
+            "#8B5CF6", "#F59E0B", "#06B6D4", "#E11D48", "#84CC16",
+            "#6366F1", "#14B8A6", "#D946EF", "#FB923C", "#A3E635",
+            "#34D399", "#60A5FA", "#F472B6", "#FBBF24"
+        ]
+
+        # Construct Plotly Figure with go.Figure
+        fig = go.Figure()
+
+        for idx, t in enumerate(selected_teams):
+            t_sub = hist_enhanced[hist_enhanced["team_name"] == t].sort_values("gameweek")
+            if t_sub.empty:
+                continue
+
+            is_hl = (t == highlight_team)
+            is_ldr = (t == leader_team_name)
+
+            if highlight_team != "🌟 Tampilkan Semua Berwarna":
+                if is_hl:
+                    color = "#00FF87"
+                    width = 4.5
+                    marker_sz = 10
+                    opacity = 1.0
+                elif is_ldr:
+                    color = "#FFD700"
+                    width = 3.0
+                    marker_sz = 7
+                    opacity = 0.95
+                else:
+                    color = PALETTE[idx % len(PALETTE)]
+                    width = 1.5
+                    marker_sz = 4
+                    opacity = 0.22
+            else:
+                color = PALETTE[idx % len(PALETTE)]
+                width = 2.8
+                marker_sz = 7
+                opacity = 0.88
+
+            if chart_type.startswith("🏆"):
+                y_col = "league_rank"
+                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Peringkat Liga: <b>#%{{y}}</b><extra></extra>"
+            elif chart_type.startswith("📈"):
+                y_col = "total_points"
+                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Total Poin: <b>%{{y}} pts</b><extra></extra>"
+            elif chart_type.startswith("🎯"):
+                y_col = "gap_to_leader"
+                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Selisih vs #1: <b>%{{y}} pts</b><extra></extra>"
+            elif chart_type.startswith("⚡"):
+                y_col = "gw_points"
+                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Skor GW: <b>%{{y}} pts</b><extra></extra>"
+            else:
+                y_col = "overall_rank"
+                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Overall Rank: <b>%{{y:,}}</b><extra></extra>"
+
+            fig.add_trace(go.Scatter(
+                x=t_sub["gameweek"],
+                y=t_sub[y_col],
+                name=t,
+                mode="lines+markers",
+                line=dict(color=color, width=width, shape="spline", smoothing=0.8),
+                marker=dict(size=marker_sz, color=color),
+                opacity=opacity,
+                hovertemplate=ht
+            ))
+
+        # Benchmarks
+        if chart_type.startswith("📈"):
+            fig.add_trace(go.Scatter(
+                x=league_avg_per_gw["gameweek"],
+                y=league_avg_per_gw["avg_total_points"].round(1),
+                name="⚡ Rata-Rata Liga",
+                mode="lines",
+                line=dict(color="#38BDF8", width=2.5, dash="dash"),
+                hovertemplate="<b>⚡ Rata-Rata Liga</b><br>Gameweek %{x}<br>Rata-rata: <b>%{y} pts</b><extra></extra>"
+            ))
+        elif chart_type.startswith("⚡"):
+            fig.add_trace(go.Scatter(
+                x=league_avg_per_gw["gameweek"],
+                y=league_avg_per_gw["avg_gw_points"].round(1),
+                name="⚡ Rata-Rata Liga",
+                mode="lines",
+                line=dict(color="#38BDF8", width=2.5, dash="dash"),
+                hovertemplate="<b>⚡ Rata-Rata Liga</b><br>Gameweek %{x}<br>Rata-rata: <b>%{y} pts</b><extra></extra>"
+            ))
+        elif chart_type.startswith("🎯"):
+            # Horizontal zero line for leader
+            fig.add_hline(y=0, line_dash="dash", line_color="#FFD700", line_width=1.5, annotation_text="👑 Posisi #1 (Leader)", annotation_position="top left", annotation_font_color="#FFD700")
+
+        # Focus mode annotations
+        if highlight_team != "🌟 Tampilkan Semua Berwarna":
+            hl_sub = hist_enhanced[hist_enhanced["team_name"] == highlight_team].sort_values("gameweek")
+            if not hl_sub.empty:
+                last_p = hl_sub.iloc[-1]
+                last_x = last_p["gameweek"]
+                last_y = last_p[y_col]
+                val_disp = f"#{last_y}" if "rank" in y_col else f"{last_y} pts"
+                fig.add_annotation(
+                    x=last_x,
+                    y=last_y,
+                    text=f" 🎯 <b>{highlight_team}</b> ({val_disp})",
+                    showarrow=True,
+                    arrowhead=2,
+                    arrowsize=1,
+                    arrowwidth=2,
+                    arrowcolor="#00FF87",
+                    ax=45,
+                    ay=-22,
+                    font=dict(size=11, color="#FFFFFF", family="Space Grotesk"),
+                    bgcolor="rgba(0, 255, 135, 0.25)",
+                    bordercolor="#00FF87",
+                    borderwidth=1.5,
+                    borderpad=4
+                )
+
+            if leader_team_name != highlight_team and leader_team_name in selected_teams:
+                ldr_sub = hist_enhanced[hist_enhanced["team_name"] == leader_team_name].sort_values("gameweek")
+                if not ldr_sub.empty:
+                    last_ldr = ldr_sub.iloc[-1]
+                    last_ldr_x = last_ldr["gameweek"]
+                    last_ldr_y = last_ldr[y_col]
+                    val_ldr = f"#{last_ldr_y}" if "rank" in y_col else f"{last_ldr_y} pts"
+                    fig.add_annotation(
+                        x=last_ldr_x,
+                        y=last_ldr_y,
+                        text=f" 👑 <b>#1 {leader_team_name}</b> ({val_ldr})",
+                        showarrow=True,
+                        arrowhead=2,
+                        arrowsize=1,
+                        arrowwidth=1.5,
+                        arrowcolor="#FFD700",
+                        ax=40,
+                        ay=-20,
+                        font=dict(size=10, color="#FFFFFF", family="Space Grotesk"),
+                        bgcolor="rgba(255, 215, 0, 0.2)",
+                        bordercolor="#FFD700",
+                        borderwidth=1,
+                        borderpad=3
+                    )
+
+        # Plotly Layout
+        fig.update_layout(
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             hovermode="x unified",
-            legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
-            margin=dict(l=20, r=20, t=40, b=40),
-            font=dict(family="Plus Jakarta Sans", color="#D1D8E0")
+            legend=dict(
+                orientation="h",
+                y=-0.22,
+                x=0.5,
+                xanchor="center",
+                font=dict(size=11, color="#CBD5E1")
+            ),
+            margin=dict(l=20, r=40, t=30, b=40),
+            height=490,
+            font=dict(family="Space Grotesk, sans-serif", color="#D1D8E0"),
+            xaxis=dict(
+                dtick=1,
+                tick0=1,
+                tickmode="linear",
+                tickprefix="GW ",
+                title="",
+                showgrid=True,
+                gridcolor="rgba(255,255,255,0.06)"
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="rgba(255,255,255,0.06)",
+                title=""
+            )
         )
 
-        if chart_type == "Akumulasi Total Poin":
-            fig = px.line(
-                filtered_hist, 
-                x="gameweek", 
-                y="total_points", 
-                color="team_name",
-                markers=True,
-                line_shape="spline",
-                title="📈 Pertumbuhan Total Poin Manajer (GW1 s/d GW Saat Ini)",
-                labels={"gameweek": "Gameweek", "total_points": "Total Poin", "team_name": "Tim"},
-                color_discrete_sequence=["#00FF87", "#02EFFF", "#FFE27A", "#E90052", "#9F7AEA", "#F6AD55"]
-            )
-            fig.update_layout(**plotly_layout)
-            st.plotly_chart(fig, use_container_width=True)
-
-        elif chart_type == "Poin Per Gameweek":
-            fig = px.line(
-                filtered_hist, 
-                x="gameweek", 
-                y="gw_points", 
-                color="team_name",
-                markers=True,
-                line_shape="spline",
-                title=f"⚡ Skor Poin per Gameweek",
-                labels={"gameweek": "Gameweek", "gw_points": "Poin GW", "team_name": "Tim"},
-                color_discrete_sequence=["#00FF87", "#02EFFF", "#FFE27A", "#E90052", "#9F7AEA", "#F6AD55"]
-            )
-            fig.update_layout(**plotly_layout)
-            st.plotly_chart(fig, use_container_width=True)
-
-        elif chart_type == "Pergerakan Overall Rank FPL":
-            fig = px.line(
-                filtered_hist, 
-                x="gameweek", 
-                y="overall_rank", 
-                color="team_name",
-                markers=True,
-                line_shape="spline",
-                title="🌍 Pergerakan Overall Rank Dunia (Makin ke atas = makin tinggi)",
-                labels={"gameweek": "Gameweek", "overall_rank": "Overall Rank", "team_name": "Tim"},
-                color_discrete_sequence=["#00FF87", "#02EFFF", "#FFE27A", "#E90052", "#9F7AEA", "#F6AD55"]
-            )
+        if chart_type.startswith("🏆") or chart_type.startswith("🌍"):
             fig.update_yaxes(autorange="reversed")
-            fig.update_layout(**plotly_layout)
-            st.plotly_chart(fig, use_container_width=True)
+            if chart_type.startswith("🏆"):
+                fig.update_yaxes(dtick=1)
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Helpful contextual caption tip
+        if chart_type.startswith("🏆"):
+            st.caption("💡 **Tips Bump Chart:** Menampilkan perebutan peringkat klasemen liga dari pekan ke pekan. Peringkat 1 (#1) berada di posisi paling atas. Terlihat jelas siapa yang konsisten di puncak dan siapa yang sedang merangkak naik.")
+        elif chart_type.startswith("📈"):
+            st.caption("💡 **Tips Akumulasi:** Garis putus-putus biru langit adalah **Benchmark Rata-Rata Liga**. Tim yang grafiknya berada di atas garis ini berarti tampil di atas standar rata-rata liga.")
+        elif chart_type.startswith("🎯"):
+            st.caption("💡 **Tips Gap to Leader:** Garis emas di angka 0 adalah posisi Pemuncak Klasemen (#1). Angka negatif menunjukkan berapa selisih poin yang harus Anda pangkas untuk merebut posisi puncak.")
+        elif chart_type.startswith("⚡"):
+            st.caption("💡 **Tips Poin Mingguan:** Mengamati konsistensi fluktuasi skor per gameweek dibanding rata-rata poin mingguan liga.")
+        else:
+            st.caption("💡 **Tips Overall Rank Dunia:** Posisi peringkat Anda di antara 11+ juta manajer FPL sedunia. Semakin ke atas grafiknya, semakin tinggi peringkat dunia Anda.")
 
         # ----------------- REKAP PEMENANG MINGGUAN (HALL OF FAME) -----------------
         st.markdown("---")
