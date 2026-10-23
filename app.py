@@ -1949,38 +1949,88 @@ with tab_transfers:
 
         st.markdown("<div style='margin-bottom: 22px;'></div>", unsafe_allow_html=True)
 
+        # Orientation & Filter Toggle Row
+        col_c_head, col_c_tog = st.columns([3, 1.4])
+        with col_c_head:
+            st.markdown("##### 🛒 Top Aktivitas Transfer Pemain di Liga")
+        with col_c_tog:
+            tx_orient = st.radio(
+                "Orientasi Chart:",
+                ["Horizontal", "Vertikal"],
+                horizontal=True,
+                label_visibility="collapsed",
+                key="tx_chart_orient_radio"
+            )
+
+        is_vertical = (tx_orient == "Vertikal")
+
         # Charts Row: Top IN vs Top OUT
         col_c1, col_c2 = st.columns(2)
         with col_c1:
-            st.markdown("##### 🟢 Pemain Paling Banyak Dibeli (Top Transfers IN)")
+            st.markdown("###### 🟢 Pemain Paling Banyak Dibeli (Top Transfers IN)")
             if not top_in_df.empty:
                 plot_in_df = top_in_df.head(8)
-                fig_in = px.bar(
-                    plot_in_df,
-                    x="Transfers IN",
-                    y="Player",
-                    orientation="h",
-                    text="Transfers IN",
-                    color="Transfers IN",
-                    color_continuous_scale=[[0, "#004d28"], [1, "#00FF87"]],
-                    template="plotly_dark"
-                )
-                fig_in.update_traces(
-                    textposition="inside",
-                    textfont=dict(size=12, color="#FFFFFF", family="Space Grotesk")
-                )
-                fig_in.update_layout(
-                    showlegend=False,
-                    coloraxis_showscale=False,
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=10, r=20, t=15, b=10),
-                    height=max(260, len(plot_in_df) * 38),
-                    xaxis_title="Jumlah Manajer Membeli",
-                    yaxis_title="",
-                    yaxis=dict(autorange="reversed", tickfont=dict(size=12, color="#E2E8F0")),
-                    xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1)
-                )
+                max_in = int(plot_in_df["Transfers IN"].max()) if not plot_in_df.empty else 1
+
+                if is_vertical:
+                    fig_in = px.bar(
+                        plot_in_df,
+                        x="Player",
+                        y="Transfers IN",
+                        text="Transfers IN",
+                        color="Transfers IN",
+                        color_continuous_scale=[[0, "#00A859"], [0.5, "#00D870"], [1, "#00FF87"]],
+                        template="plotly_dark"
+                    )
+                    fig_in.update_traces(
+                        textposition="outside",
+                        texttemplate="<b>%{text}</b>",
+                        textangle=0,
+                        textfont=dict(size=13, color="#FFFFFF", family="Space Grotesk"),
+                        cliponaxis=False
+                    )
+                    fig_in.update_layout(
+                        showlegend=False,
+                        coloraxis_showscale=False,
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        margin=dict(l=10, r=10, t=25, b=10),
+                        height=350,
+                        xaxis_title="",
+                        yaxis_title="Jumlah Manajer Membeli",
+                        xaxis=dict(tickangle=-35, tickfont=dict(size=11, color="#E2E8F0")),
+                        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1, range=[0, max_in + 0.5])
+                    )
+                else:
+                    fig_in = px.bar(
+                        plot_in_df,
+                        x="Transfers IN",
+                        y="Player",
+                        orientation="h",
+                        text="Transfers IN",
+                        color="Transfers IN",
+                        color_continuous_scale=[[0, "#00A859"], [0.5, "#00D870"], [1, "#00FF87"]],
+                        template="plotly_dark"
+                    )
+                    fig_in.update_traces(
+                        textposition="outside",
+                        texttemplate="<b>%{text}</b>",
+                        textangle=0,
+                        textfont=dict(size=13, color="#FFFFFF", family="Space Grotesk"),
+                        cliponaxis=False
+                    )
+                    fig_in.update_layout(
+                        showlegend=False,
+                        coloraxis_showscale=False,
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        margin=dict(l=10, r=30, t=15, b=10),
+                        height=max(260, len(plot_in_df) * 38),
+                        xaxis_title="Jumlah Manajer Membeli",
+                        yaxis_title="",
+                        yaxis=dict(autorange="reversed", tickfont=dict(size=12, color="#E2E8F0")),
+                        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1, range=[0, max_in + 0.65])
+                    )
                 st.plotly_chart(fig_in, use_container_width=True)
 
                 st.markdown("<span style='font-size:0.82rem; color:#8c9ba5;'>💡 Klik nama pemain di bawah untuk melihat siapa saja manajer yang membeli:</span>", unsafe_allow_html=True)
@@ -1991,35 +2041,70 @@ with tab_transfers:
                         show_player_transfers_dialog(prow['Player'], "IN", transfers_df)
         
         with col_c2:
-            st.markdown("##### 🔴 Pemain Paling Banyak Dijual (Top Transfers OUT)")
+            st.markdown("###### 🔴 Pemain Paling Banyak Dijual (Top Transfers OUT)")
             if not top_out_df.empty:
                 plot_out_df = top_out_df.head(8)
-                fig_out = px.bar(
-                    plot_out_df,
-                    x="Transfers OUT",
-                    y="Player",
-                    orientation="h",
-                    text="Transfers OUT",
-                    color="Transfers OUT",
-                    color_continuous_scale=[[0, "#4d0014"], [1, "#ff6b85"]],
-                    template="plotly_dark"
-                )
-                fig_out.update_traces(
-                    textposition="inside",
-                    textfont=dict(size=12, color="#FFFFFF", family="Space Grotesk")
-                )
-                fig_out.update_layout(
-                    showlegend=False,
-                    coloraxis_showscale=False,
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    margin=dict(l=10, r=20, t=15, b=10),
-                    height=max(260, len(plot_out_df) * 38),
-                    xaxis_title="Jumlah Manajer Menjual",
-                    yaxis_title="",
-                    yaxis=dict(autorange="reversed", tickfont=dict(size=12, color="#E2E8F0")),
-                    xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1)
-                )
+                max_out = int(plot_out_df["Transfers OUT"].max()) if not plot_out_df.empty else 1
+
+                if is_vertical:
+                    fig_out = px.bar(
+                        plot_out_df,
+                        x="Player",
+                        y="Transfers OUT",
+                        text="Transfers OUT",
+                        color="Transfers OUT",
+                        color_continuous_scale=[[0, "#E11D48"], [0.5, "#F43F5E"], [1, "#FF6B85"]],
+                        template="plotly_dark"
+                    )
+                    fig_out.update_traces(
+                        textposition="outside",
+                        texttemplate="<b>%{text}</b>",
+                        textangle=0,
+                        textfont=dict(size=13, color="#FFFFFF", family="Space Grotesk"),
+                        cliponaxis=False
+                    )
+                    fig_out.update_layout(
+                        showlegend=False,
+                        coloraxis_showscale=False,
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        margin=dict(l=10, r=10, t=25, b=10),
+                        height=350,
+                        xaxis_title="",
+                        yaxis_title="Jumlah Manajer Menjual",
+                        xaxis=dict(tickangle=-35, tickfont=dict(size=11, color="#E2E8F0")),
+                        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1, range=[0, max_out + 0.5])
+                    )
+                else:
+                    fig_out = px.bar(
+                        plot_out_df,
+                        x="Transfers OUT",
+                        y="Player",
+                        orientation="h",
+                        text="Transfers OUT",
+                        color="Transfers OUT",
+                        color_continuous_scale=[[0, "#E11D48"], [0.5, "#F43F5E"], [1, "#FF6B85"]],
+                        template="plotly_dark"
+                    )
+                    fig_out.update_traces(
+                        textposition="outside",
+                        texttemplate="<b>%{text}</b>",
+                        textangle=0,
+                        textfont=dict(size=13, color="#FFFFFF", family="Space Grotesk"),
+                        cliponaxis=False
+                    )
+                    fig_out.update_layout(
+                        showlegend=False,
+                        coloraxis_showscale=False,
+                        paper_bgcolor="rgba(0,0,0,0)",
+                        plot_bgcolor="rgba(0,0,0,0)",
+                        margin=dict(l=10, r=30, t=15, b=10),
+                        height=max(260, len(plot_out_df) * 38),
+                        xaxis_title="Jumlah Manajer Menjual",
+                        yaxis_title="",
+                        yaxis=dict(autorange="reversed", tickfont=dict(size=12, color="#E2E8F0")),
+                        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", dtick=1, range=[0, max_out + 0.65])
+                    )
                 st.plotly_chart(fig_out, use_container_width=True)
 
                 st.markdown("<span style='font-size:0.82rem; color:#8c9ba5;'>💡 Klik nama pemain di bawah untuk melihat siapa saja manajer yang menjual:</span>", unsafe_allow_html=True)
