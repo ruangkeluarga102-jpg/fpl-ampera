@@ -1172,63 +1172,53 @@ def render_pitch_html(squad_items):
         team_short = html.escape(str(p.get("team_short", "---")))
         cost_val = p.get("now_cost", 0.0)
 
-        return f"""
-        <div class="tactical-card{card_class}">
-            {cap_badge}
-            <div class="kit-icon">{jersey}</div>
-            <div class="player-webname" title="{web_name}">{web_name}</div>
-            <div class="player-meta">{team_short} · £{cost_val:.1f}m</div>
-            <div class="player-pts-pill {pts_badge_class}">{pts_icon}{pts_total} pts{mult_tag}</div>
-        </div>
-        """
+        return (
+            f'<div class="tactical-card{card_class}">'
+            f'{cap_badge}'
+            f'<div class="kit-icon">{jersey}</div>'
+            f'<div class="player-webname" title="{web_name}">{web_name}</div>'
+            f'<div class="player-meta">{team_short} · £{cost_val:.1f}m</div>'
+            f'<div class="player-pts-pill {pts_badge_class}">{pts_icon}{pts_total} pts{mult_tag}</div>'
+            f'</div>'
+        )
 
-    out = f"""
-    <div class="tactical-pitch-container">
-        <!-- Pitch Header -->
-        <div class="pitch-tactical-bar">
-            <div class="pitch-formation-tag">
-                <span class="pulse-indicator"></span>
-                <span>⚔️ FORMASI: <b>{formation}</b></span>
-            </div>
-            <div class="pitch-stat-tag">
-                <span>⭐ STARTING XI: <b style="color: #00FF87;">{starters_pts} PTS</b></span>
-            </div>
-        </div>
+    cards_gk = "".join(make_card(p) for p in gks)
+    cards_def = "".join(make_card(p) for p in defs)
+    cards_mid = "".join(make_card(p) for p in mids)
+    cards_fwd = "".join(make_card(p) for p in fwds)
+    cards_bench = "".join(make_card(p, bench_slot=f'Sub {idx}' if idx > 0 else 'GK') for idx, p in enumerate(bench))
 
-        <!-- Stadium Grass Pitch -->
-        <div class="stadium-grass">
-            <div class="pitch-penalty-box-top">
-                <div class="pitch-goal-arc-top"></div>
-            </div>
-            <div class="pitch-halfway">
-                <div class="pitch-circle">
-                    <div class="pitch-dot"></div>
-                </div>
-            </div>
-            <div class="pitch-penalty-box-bottom">
-                <div class="pitch-goal-arc-bottom"></div>
-            </div>
+    out = (
+        f'<div class="tactical-pitch-container">'
+        f'<div class="pitch-tactical-bar">'
+        f'<div class="pitch-formation-tag">'
+        f'<span class="pulse-indicator"></span>'
+        f'<span>⚔️ FORMASI: <b>{formation}</b></span>'
+        f'</div>'
+        f'<div class="pitch-stat-tag">'
+        f'<span>⭐ STARTING XI: <b style="color: #00FF87;">{starters_pts} PTS</b></span>'
+        f'</div>'
+        f'</div>'
+        f'<div class="stadium-grass">'
+        f'<div class="pitch-penalty-box-top"><div class="pitch-goal-arc-top"></div></div>'
+        f'<div class="pitch-halfway"><div class="pitch-circle"><div class="pitch-dot"></div></div></div>'
+        f'<div class="pitch-penalty-box-bottom"><div class="pitch-goal-arc-bottom"></div></div>'
+        f'<div class="pitch-squad-row row-gk">{cards_gk}</div>'
+        f'<div class="pitch-squad-row row-def">{cards_def}</div>'
+        f'<div class="pitch-squad-row row-mid">{cards_mid}</div>'
+        f'<div class="pitch-squad-row row-fwd">{cards_fwd}</div>'
+        f'</div>'
+        f'<div class="bench-dugout-container">'
+        f'<div class="dugout-header">'
+        f'<span class="dugout-title">🪑 BANGKU CADANGAN (BENCH)</span>'
+        f'<span class="dugout-pts">POIN TERSIMPAN: <b>{bench_pts} PTS</b></span>'
+        f'</div>'
+        f'<div class="dugout-row">{cards_bench}</div>'
+        f'</div>'
+        f'</div>'
+    )
+    return "".join(line.strip() for line in out.splitlines())
 
-            <!-- Player Rows -->
-            <div class="pitch-squad-row row-gk">{''.join(make_card(p) for p in gks)}</div>
-            <div class="pitch-squad-row row-def">{''.join(make_card(p) for p in defs)}</div>
-            <div class="pitch-squad-row row-mid">{''.join(make_card(p) for p in mids)}</div>
-            <div class="pitch-squad-row row-fwd">{''.join(make_card(p) for p in fwds)}</div>
-        </div>
-
-        <!-- Dugout / Bench -->
-        <div class="bench-dugout-container">
-            <div class="dugout-header">
-                <span class="dugout-title">🪑 BANGKU CADANGAN (BENCH)</span>
-                <span class="dugout-pts">POIN TERSIMPAN: <b>{bench_pts} PTS</b></span>
-            </div>
-            <div class="dugout-row">
-                {''.join(make_card(p, bench_slot=f'Sub {idx}' if idx > 0 else 'GK') for idx, p in enumerate(bench))}
-            </div>
-        </div>
-    </div>
-    """
-    return out
 
 _MD_SPECIAL = re.compile(r'([!"#$%&\'()*+,\-./:;<=>?@\[\\\]^_`{|}~])')
 def _md_escape(text):
