@@ -509,140 +509,341 @@ st.markdown("""
         font-weight: 900 !important;
     }
 
-    /* Pitch Card Visualizer - Sharp Tactical Hexagonal Style */
-    /* ---- Tactics board: chalk-on-chalkboard theme ---- */
-    .pitch-container {
+    /* =========================================================================
+       PREMIER LEAGUE STADIUM TACTICAL PITCH & SQUAD VISUALIZER
+       ========================================================================= */
+    .tactical-pitch-container {
+        width: 100%;
+        margin: 14px 0 20px;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 255, 135, 0.25);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 255, 135, 0.08);
+        background: #0a140f;
+    }
+
+    /* Top tactical bar */
+    .pitch-tactical-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 18px;
+        background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(6, 78, 59, 0.7));
+        border-bottom: 1px solid rgba(0, 255, 135, 0.2);
+        font-family: 'Space Grotesk', sans-serif;
+    }
+    .pitch-formation-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        letter-spacing: 0.5px;
+    }
+    .pulse-indicator {
+        width: 8px;
+        height: 8px;
+        background: #00FF87;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #00FF87;
+        display: inline-block;
+        animation: pulseLive 2s infinite ease-in-out;
+    }
+    @keyframes pulseLive {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .pitch-stat-tag {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #E2E8F0;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Realistic Stadium Grass Pitch */
+    .stadium-grass {
         position: relative;
+        padding: 24px 12px 28px;
         background:
-            radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.05) 0%, transparent 45%),
-            radial-gradient(ellipse at 75% 85%, rgba(255,255,255,0.035) 0%, transparent 45%),
-            repeating-linear-gradient(37deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 4px),
-            repeating-linear-gradient(-51deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 5px),
-            linear-gradient(160deg, #1d3324 0%, #16281c 55%, #0f1c14 100%);
-        border: 10px solid #6b4a30;
-        border-radius: 6px;
-        padding: 26px 22px 22px;
-        box-shadow: inset 0 0 70px rgba(0,0,0,0.55), 0 10px 26px rgba(0,0,0,0.4);
-        margin: 15px 0;
-        color: white;
+            radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+            radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.6) 100%),
+            repeating-linear-gradient(90deg, #134e2c 0px, #134e2c 48px, #0f3f23 48px, #0f3f23 96px);
         overflow: hidden;
     }
-    /* hand-drawn chalk pitch markings */
-    .pitch-container::before {
+
+    /* Pitch outer white boundary */
+    .stadium-grass::before {
         content: "";
         position: absolute;
-        inset: 14px;
-        border: 2px dashed rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
+        inset: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        border-radius: 8px;
         pointer-events: none;
     }
-    .pitch-container::after {
-        content: "";
+
+    /* Halfway line & center circle */
+    .pitch-halfway {
         position: absolute;
-        top: 50%; left: 50%;
-        width: 90px; height: 90px;
-        margin: -45px 0 0 -45px;
-        border: 2px dashed rgba(255, 255, 255, 0.25);
+        top: 50%;
+        left: 12px;
+        right: 12px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-50%);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pitch-circle {
+        width: 104px;
+        height: 104px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pitch-dot {
+        width: 6px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+    }
+
+    /* Penalty boxes (top & bottom) */
+    .pitch-penalty-box-top {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 220px;
+        height: 68px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: none;
+        border-radius: 0 0 6px 6px;
         pointer-events: none;
     }
-    .pitch-row {
+    .pitch-goal-arc-top {
+        position: absolute;
+        bottom: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 70px;
+        height: 22px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-top: none;
+        border-radius: 0 0 35px 35px;
+    }
+    .pitch-penalty-box-bottom {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 220px;
+        height: 68px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        pointer-events: none;
+    }
+    .pitch-goal-arc-bottom {
+        position: absolute;
+        top: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 70px;
+        height: 22px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-bottom: none;
+        border-radius: 35px 35px 0 0;
+    }
+
+    /* Pitch Squad Rows */
+    .pitch-squad-row {
         position: relative;
-        z-index: 1;
+        z-index: 2;
         display: flex;
         justify-content: space-around;
         align-items: center;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
     }
-    .player-card {
-        background: transparent;
-        color: #F4F1E8;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        padding: 4px 8px;
-        text-align: center;
-        min-width: 92px;
-        font-size: 0.82rem;
+    .pitch-squad-row:last-child {
+        margin-bottom: 4px;
+    }
+
+    /* Tactical Player Card */
+    .tactical-card {
         position: relative;
-        transition: transform 0.15s ease;
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 10px;
+        padding: 8px 6px 7px;
+        text-align: center;
+        min-width: 90px;
+        max-width: 106px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        cursor: default;
     }
-    .player-card:hover {
-        transform: scale(1.06) rotate(-1deg);
+    .tactical-card:hover {
+        transform: translateY(-4px) scale(1.05);
+        border-color: rgba(0, 255, 135, 0.55);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(0, 255, 135, 0.2);
     }
-    .player-card:hover .chalk-ring {
-        border-color: #fff6d8;
-        box-shadow: 0 0 10px rgba(255, 246, 216, 0.5);
+    .tactical-card.card-captain {
+        border: 2px solid #FFD700;
+        box-shadow: 0 0 18px rgba(255, 215, 0, 0.4), 0 4px 14px rgba(0,0,0,0.5);
     }
-    .chalk-ring {
-        width: 44px;
-        height: 44px;
-        margin: 0 auto 2px;
+    .tactical-card.card-vc {
+        border: 1.5px solid #E2E8F0;
+        box-shadow: 0 0 12px rgba(226, 232, 240, 0.25);
+    }
+    .tactical-card.card-bench {
+        opacity: 0.92;
+        background: rgba(15, 23, 42, 0.78);
+    }
+
+    /* Captain & VC Badges */
+    .badge-cap, .badge-vc, .badge-bench {
+        position: absolute;
+        top: -7px;
+        right: -5px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 800;
+        font-size: 0.72rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px dashed rgba(255, 255, 255, 0.65);
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.03);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        z-index: 5;
     }
-    .chalk-ring svg { width: 24px; height: 24px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.6)); }
-    .player-card-cap .chalk-ring {
-        border: 2.5px solid #ffd76b;
-        border-style: dashed;
-        box-shadow: 0 0 14px rgba(255, 215, 107, 0.55);
+    .badge-cap {
+        background: linear-gradient(135deg, #FFE27A, #F59E0B);
+        color: #0F172A;
+        border: 1.5px solid #FFFFFF;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
     }
-    .player-name {
-        font-family: 'Patrick Hand', cursive;
-        font-size: 1.08rem;
-        font-weight: 400;
-        letter-spacing: 0.2px;
+    .badge-vc {
+        background: linear-gradient(135deg, #F1F5F9, #94A3B8);
+        color: #0F172A;
+        border: 1.5px solid #FFFFFF;
+        box-shadow: 0 0 8px rgba(148, 163, 184, 0.5);
+    }
+    .badge-bench {
+        background: rgba(30, 41, 59, 0.9);
+        color: #94A3B8;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 0.65rem;
+        width: auto;
+        padding: 0 6px;
+        border-radius: 6px;
+        height: 18px;
+    }
+
+    /* Kit icon */
+    .kit-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 2px auto 4px;
+        height: 34px;
+    }
+    .kit-icon svg {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    }
+
+    /* Player text styling */
+    .player-webname {
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 0.86rem;
+        color: #FFFFFF;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        text-shadow: 0 0 6px rgba(255,255,255,0.25);
+        letter-spacing: 0.2px;
+        line-height: 1.2;
     }
-    .player-team {
-        font-family: 'Patrick Hand', cursive;
-        color: #b8c4b4;
-        font-size: 0.82rem;
-        font-weight: 400;
-        margin-top: 0;
+    .player-meta {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.70rem;
+        color: #94A3B8;
+        font-weight: 600;
+        margin: 2px 0 5px;
     }
-    .player-pts {
-        font-family: 'Patrick Hand', cursive;
-        color: #baffce;
-        background: transparent;
-        border: 1.5px dashed rgba(186, 255, 206, 0.55);
-        border-radius: 999px;
-        font-weight: 400;
-        font-size: 0.82rem;
-        margin-top: 4px;
-        padding: 0px 9px;
+
+    /* Dynamic Points Pill */
+    .player-pts-pill {
         display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.74rem;
+        font-weight: 700;
+        white-space: nowrap;
+        line-height: 1.2;
     }
-    .badge-c, .badge-vc {
-        position: absolute;
-        top: -6px;
-        right: 6px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        font-family: 'Patrick Hand', cursive;
-        font-weight: 400;
-        font-size: 0.78rem;
+    .pts-pill-fire {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
+        border: 1px solid #F59E0B;
+        color: #FDE047;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+    .pts-pill-good {
+        background: rgba(0, 255, 135, 0.16);
+        border: 1px solid rgba(0, 255, 135, 0.55);
+        color: #00FF87;
+    }
+    .pts-pill-normal {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #E2E8F0;
+    }
+    .pts-pill-cold {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #F87171;
+    }
+
+    /* Dugout / Substitutes Bench */
+    .bench-dugout-container {
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 28, 0.98));
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 14px 16px 16px;
+    }
+    .dugout-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        background: rgba(15, 28, 20, 0.85);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.8rem;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
     }
-    .badge-c {
-        border: 2px dashed #ffd76b;
-        color: #ffd76b;
+    .dugout-title {
+        color: #94A3B8;
+        font-weight: 700;
+        letter-spacing: 0.5px;
     }
-    .badge-vc {
-        border: 2px dashed #d8dee2;
-        color: #d8dee2;
+    .dugout-pts {
+        color: #CBD5E1;
+        font-weight: 600;
+    }
+    .dugout-pts b {
+        color: #FFE27A;
+    }
+    .dugout-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
     /* Rank Badges - Sharp Hexagon Shield */
@@ -888,7 +1089,37 @@ def load_league_data(league_id: int, gameweek: int, max_entries: int):
     return data
 
 # ----------------- SHARED SQUAD PITCH RENDERER -----------------
+SVG_KITS = {
+    "GKP": """<svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 5L2.5 11L6.5 14L8 12V27H24V12L25.5 14L29.5 11L24 5H19C19 6.5 17.5 8 16 8C14.5 8 13 6.5 13 5H8Z" fill="#F59E0B" stroke="#D97706" stroke-width="1.2"/>
+  <path d="M13 5C13 6.5 14.5 8 16 8C17.5 8 19 6.5 19 5" stroke="#FEF3C7" stroke-width="1.5" fill="none"/>
+  <rect x="11" y="16" width="10" height="2.5" rx="1" fill="#FEF3C7" opacity="0.75"/>
+  <circle cx="20" cy="12" r="1.5" fill="#FEF3C7"/>
+</svg>""",
+    "DEF": """<svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 5L2.5 11L6.5 14L8 12V27H24V12L25.5 14L29.5 11L24 5H19C19 6.5 17.5 8 16 8C14.5 8 13 6.5 13 5H8Z" fill="#2563EB" stroke="#1D4ED8" stroke-width="1.2"/>
+  <path d="M13 5C13 6.5 14.5 8 16 8C17.5 8 19 6.5 19 5" stroke="#BFDBFE" stroke-width="1.5" fill="none"/>
+  <rect x="11" y="16" width="10" height="2.5" rx="1" fill="#BFDBFE" opacity="0.75"/>
+  <circle cx="20" cy="12" r="1.5" fill="#BFDBFE"/>
+</svg>""",
+    "MID": """<svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 5L2.5 11L6.5 14L8 12V27H24V12L25.5 14L29.5 11L24 5H19C19 6.5 17.5 8 16 8C14.5 8 13 6.5 13 5H8Z" fill="#059669" stroke="#047857" stroke-width="1.2"/>
+  <path d="M13 5C13 6.5 14.5 8 16 8C17.5 8 19 6.5 19 5" stroke="#A7F3D0" stroke-width="1.5" fill="none"/>
+  <rect x="11" y="16" width="10" height="2.5" rx="1" fill="#A7F3D0" opacity="0.75"/>
+  <circle cx="20" cy="12" r="1.5" fill="#A7F3D0"/>
+</svg>""",
+    "FWD": """<svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 5L2.5 11L6.5 14L8 12V27H24V12L25.5 14L29.5 11L24 5H19C19 6.5 17.5 8 16 8C14.5 8 13 6.5 13 5H8Z" fill="#DC2626" stroke="#B91C1C" stroke-width="1.2"/>
+  <path d="M13 5C13 6.5 14.5 8 16 8C17.5 8 19 6.5 19 5" stroke="#FECACA" stroke-width="1.5" fill="none"/>
+  <rect x="11" y="16" width="10" height="2.5" rx="1" fill="#FECACA" opacity="0.75"/>
+  <circle cx="20" cy="12" r="1.5" fill="#FECACA"/>
+</svg>"""
+}
+
 def render_pitch_html(squad_items):
+    if not squad_items:
+        return '<div style="color: #94A3B8; text-align: center; padding: 20px;">Data susunan pemain belum tersedia.</div>'
+
     starters = [p for p in squad_items if p.get("is_starting")]
     bench = [p for p in squad_items if not p.get("is_starting")]
 
@@ -897,40 +1128,106 @@ def render_pitch_html(squad_items):
     mids = [p for p in starters if p["position"] == "MID"]
     fwds = [p for p in starters if p["position"] == "FWD"]
 
-    def make_card(p, bench_card=False):
-        cap_html = ''
-        cap_class = ''
-        if p.get("is_captain"):
-            cap_html = '<div class="badge-c">C</div>'
-            cap_class = ' player-card-cap'
-        elif p.get("is_vice_captain"):
-            cap_html = '<div class="badge-vc">V</div>'
-        pos = p.get("position")
-        jersey_svg = SVG_ICONS.get(f"jersey_{pos.lower()}", "") if pos else ""
-        opacity_style = ' style="opacity: 0.88;"' if bench_card else ''
-        team_suffix = " (B)" if bench_card else f" • £{p.get('now_cost', 0):.1f}m"
+    formation = f"{len(defs)}-{len(mids)}-{len(fwds)}"
+    starters_pts = sum(p.get("event_points_total", p.get("event_points", 0)) for p in starters)
+    bench_pts = sum(p.get("event_points", 0) for p in bench)
+
+    def make_card(p, bench_slot=None):
+        pos = p.get("position", "MID")
+        jersey = SVG_KITS.get(pos, SVG_KITS["MID"])
+        is_cap = p.get("is_captain", False)
+        is_vc = p.get("is_vice_captain", False)
         mult = p.get("multiplier", 1) or 1
-        pts_total = p.get("event_points_total", p.get("event_points", 0))
-        mult_tag = f' <span style="opacity:0.75; font-size:0.6rem;">(×{mult})</span>' if mult > 1 else ''
-        card = f'<div class="player-card{cap_class}"{opacity_style}>'
-        card += cap_html
-        card += f'<div class="chalk-ring">{jersey_svg}</div>'
-        card += f'<div class="player-name">{p["web_name"]}</div>'
-        card += f'<div class="player-team">{p["team_short"]}{team_suffix}</div>'
-        card += f'<div class="player-pts">{pts_total} pts{mult_tag}</div>'
-        card += '</div>'
-        return card
+        raw_pts = p.get("event_points", 0)
+        pts_total = p.get("event_points_total", raw_pts * mult)
 
-    out = '<div class="pitch-container">'
-    out += '<div class="pitch-row">' + "".join(make_card(p) for p in gks) + '</div>'
-    out += '<div class="pitch-row">' + "".join(make_card(p) for p in defs) + '</div>'
-    out += '<div class="pitch-row">' + "".join(make_card(p) for p in mids) + '</div>'
-    out += '<div class="pitch-row">' + "".join(make_card(p) for p in fwds) + '</div>'
-    out += '</div>'
+        cap_badge = ""
+        card_class = ""
+        if is_cap:
+            cap_badge = '<div class="badge-cap">C</div>'
+            card_class = " card-captain"
+        elif is_vc:
+            cap_badge = '<div class="badge-vc">V</div>'
+            card_class = " card-vc"
+        elif bench_slot is not None:
+            cap_badge = f'<div class="badge-bench">{bench_slot}</div>'
+            card_class = " card-bench"
 
-    out += '<div style="background: rgba(0,0,0,0.28); border: 1px dashed rgba(255,255,255,0.15); border-radius: 10px; padding: 10px; display: flex; justify-content: space-around; position: relative; z-index: 1;">'
-    out += "".join(make_card(p, bench_card=True) for p in bench)
-    out += '</div>'
+        mult_tag = f' <span style="font-size: 0.62rem; opacity: 0.85;">(×{mult})</span>' if mult > 1 else ''
+
+        if pts_total >= 10:
+            pts_badge_class = "pts-pill-fire"
+            pts_icon = "🔥 "
+        elif pts_total >= 6:
+            pts_badge_class = "pts-pill-good"
+            pts_icon = ""
+        elif pts_total >= 1:
+            pts_badge_class = "pts-pill-normal"
+            pts_icon = ""
+        else:
+            pts_badge_class = "pts-pill-cold"
+            pts_icon = ""
+
+        web_name = html.escape(str(p.get("web_name", "-")))
+        team_short = html.escape(str(p.get("team_short", "---")))
+        cost_val = p.get("now_cost", 0.0)
+
+        return f"""
+        <div class="tactical-card{card_class}">
+            {cap_badge}
+            <div class="kit-icon">{jersey}</div>
+            <div class="player-webname" title="{web_name}">{web_name}</div>
+            <div class="player-meta">{team_short} · £{cost_val:.1f}m</div>
+            <div class="player-pts-pill {pts_badge_class}">{pts_icon}{pts_total} pts{mult_tag}</div>
+        </div>
+        """
+
+    out = f"""
+    <div class="tactical-pitch-container">
+        <!-- Pitch Header -->
+        <div class="pitch-tactical-bar">
+            <div class="pitch-formation-tag">
+                <span class="pulse-indicator"></span>
+                <span>⚔️ FORMASI: <b>{formation}</b></span>
+            </div>
+            <div class="pitch-stat-tag">
+                <span>⭐ STARTING XI: <b style="color: #00FF87;">{starters_pts} PTS</b></span>
+            </div>
+        </div>
+
+        <!-- Stadium Grass Pitch -->
+        <div class="stadium-grass">
+            <div class="pitch-penalty-box-top">
+                <div class="pitch-goal-arc-top"></div>
+            </div>
+            <div class="pitch-halfway">
+                <div class="pitch-circle">
+                    <div class="pitch-dot"></div>
+                </div>
+            </div>
+            <div class="pitch-penalty-box-bottom">
+                <div class="pitch-goal-arc-bottom"></div>
+            </div>
+
+            <!-- Player Rows -->
+            <div class="pitch-squad-row row-gk">{''.join(make_card(p) for p in gks)}</div>
+            <div class="pitch-squad-row row-def">{''.join(make_card(p) for p in defs)}</div>
+            <div class="pitch-squad-row row-mid">{''.join(make_card(p) for p in mids)}</div>
+            <div class="pitch-squad-row row-fwd">{''.join(make_card(p) for p in fwds)}</div>
+        </div>
+
+        <!-- Dugout / Bench -->
+        <div class="bench-dugout-container">
+            <div class="dugout-header">
+                <span class="dugout-title">🪑 BANGKU CADANGAN (BENCH)</span>
+                <span class="dugout-pts">POIN TERSIMPAN: <b>{bench_pts} PTS</b></span>
+            </div>
+            <div class="dugout-row">
+                {''.join(make_card(p, bench_slot=f'Sub {idx}' if idx > 0 else 'GK') for idx, p in enumerate(bench))}
+            </div>
+        </div>
+    </div>
+    """
     return out
 
 _MD_SPECIAL = re.compile(r'([!"#$%&\'()*+,\-./:;<=>?@\[\\\]^_`{|}~])')
@@ -1082,69 +1379,155 @@ Tulis analisa dalam Bahasa Indonesia, sekitar 200-280 kata, gaya lucu tapi menda
 # ----------------- MANAGER DETAIL CARD (DIALOG) -----------------
 @st.dialog("📋 Detail Manajer", width="large")
 def show_manager_dialog(row, chips_df):
+    rank_val = int(row.get("Rank", 1))
+    med_class = {1: "gold", 2: "silver", 3: "bronze"}.get(rank_val, "")
+    team_name = html.escape(str(row.get("Team Name", "-")))
+    mgr_name = html.escape(str(row.get("Manager", "-")))
+    entry_id = str(row.get("entry_id", "-"))
+
+    gw_pts = row.get("GW Points", 0)
+    total_pts = row.get("Total Points", 0)
+    overall_rank = row.get("Overall Rank", "-")
+    ov_rank_disp = f"#{overall_rank:,}" if isinstance(overall_rank, (int, float)) else str(overall_rank)
+    team_val = row.get("Team Value (£m)", row.get("Team Value (m)", 0)) or 0
+    bank_val = row.get("Bank (£m)", row.get("Bank (m)", 0)) or 0
+
+    bench_pts = row.get("Bench Points", 0) or 0
+    tx_count = row.get("Transfers", 0) or 0
+    hits_val = row.get("Transfer Cost", 0) or 0
+
+    captain_str = html.escape(str(row.get("Captain", "-")))
+    vc_str = html.escape(str(row.get("Vice Captain", "-")))
+    active_chip = str(row.get("Active Chip", "-")).strip()
+
+    # Header Card
     st.markdown(f"""
-    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px;">
-        <span class="rank-badge {({1: "gold", 2: "silver", 3: "bronze"}.get(int(row["Rank"]), ""))}" style="width: 40px; height: 40px; font-size: 1.1rem;">{int(row["Rank"])}</span>
-        <div>
-            <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.3rem; color: #F5F7FA;">{html.escape(str(row["Team Name"]))}</div>
-            <div style="color: var(--text-muted); font-size: 0.9rem;">{html.escape(str(row["Manager"]))}</div>
-            <div style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
-                🆔 Team ID: <span style="font-family: ui-monospace, monospace; color: #02EFFF;">{html.escape(str(row.get("entry_id", "-")))}</span>
-                &nbsp;·&nbsp;
-                <a href="https://fantasy.premierleague.com/entry/{row.get('entry_id', '')}/history" target="_blank" style="color: #02EFFF; text-decoration: none;">Lihat di FPL ↗</a>
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px 18px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <span class="rank-badge {med_class}" style="width: 44px; height: 44px; font-size: 1.25rem;">{rank_val}</span>
+            <div>
+                <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.45rem; color: #FFFFFF; line-height: 1.2;">{team_name}</div>
+                <div style="color: #94A3B8; font-size: 0.9rem; margin-top: 2px;">👤 {mgr_name}</div>
             </div>
+        </div>
+        <div style="text-align: right; font-size: 0.82rem; color: #94A3B8;">
+            <div>🆔 Team ID: <span style="font-family: monospace; color: #02EFFF; font-weight: 700;">{entry_id}</span></div>
+            <div style="margin-top: 4px;"><a href="https://fantasy.premierleague.com/entry/{entry_id}/history" target="_blank" style="color: #00FF87; text-decoration: none; font-weight: 700;">Buka Profil FPL Resmi ↗</a></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Poin GW", f'{row.get("GW Points", 0)}')
-    c2.metric("Total Poin", f'{row.get("Total Points", 0)}')
-    overall_rank = row.get("Overall Rank", "-")
-    c3.metric("Rank Dunia", f"{overall_rank:,}" if isinstance(overall_rank, (int, float)) else str(overall_rank))
-    c4.metric("Nilai Tim", f'£{row.get("Team Value (£m)", 0):.1f}m')
+    # 4 Primary KPI Cards
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.markdown(f"""
+        <div class="kpi-card kpi-accent-green" style="padding: 12px 14px;">
+            <div class="kpi-header"><span class="kpi-label">Poin GW Ini</span>{SVG_ICONS['lightning']}</div>
+            <div class="kpi-value" style="font-size: 1.55rem; color: #00FF87;">{gw_pts} <span style="font-size: 0.85rem; color: #8c9ba5;">pts</span></div>
+            <div class="kpi-subtext">Poin bersih pekan ini</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    c5, c6, c7 = st.columns(3)
-    c5.metric("Bench Poin", f'{row.get("Bench Points", 0)}')
-    c6.metric("Transfer", f'{row.get("Transfers", 0)}')
-    hits = row.get("Transfer Cost", 0) or 0
-    c7.metric("Hits", f'-{hits} pts' if hits else "0 pts")
+    with k2:
+        st.markdown(f"""
+        <div class="kpi-card kpi-accent-cyan" style="padding: 12px 14px;">
+            <div class="kpi-header"><span class="kpi-label">Total Poin</span>{SVG_ICONS['trophy']}</div>
+            <div class="kpi-value" style="font-size: 1.55rem; color: #02EFFF;">{total_pts} <span style="font-size: 0.85rem; color: #8c9ba5;">pts</span></div>
+            <div class="kpi-subtext">Rank <b>#{rank_val}</b> di Liga</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown(f"👑 **Kapten:** {html.escape(str(row.get('Captain', '-')))} &nbsp;|&nbsp; 🅥 **Wakil Kapten:** {html.escape(str(row.get('Vice Captain', '-')))}", unsafe_allow_html=True)
+    with k3:
+        st.markdown(f"""
+        <div class="kpi-card kpi-accent-purple" style="padding: 12px 14px;">
+            <div class="kpi-header"><span class="kpi-label">Rank Dunia</span>{SVG_ICONS['chart']}</div>
+            <div class="kpi-value" style="font-size: 1.35rem; color: #E2E8F0;">{ov_rank_disp}</div>
+            <div class="kpi-subtext">Overall Rank Global FPL</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    active_chip = row.get("Active Chip", "-")
+    with k4:
+        st.markdown(f"""
+        <div class="kpi-card kpi-accent-pink" style="padding: 12px 14px;">
+            <div class="kpi-header"><span class="kpi-label">Nilai Skuad</span><span style="color:#ff6b85;font-weight:800;font-size:0.8rem;">£m</span></div>
+            <div class="kpi-value" style="font-size: 1.35rem; color: #F5F7FA;">£{team_val:.1f}m</div>
+            <div class="kpi-subtext">Sisa Bank: <b>£{bank_val:.1f}m</b></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Secondary Tactical Metrics Row
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.82rem; color: #94A3B8;">🪑 Poin Cadangan (Bench)</span>
+            <span style="font-weight: 800; color: {'#FFE27A' if bench_pts >= 8 else '#FFFFFF'}; font-family: Space Grotesk, sans-serif;">{bench_pts} pts</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with m2:
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.82rem; color: #94A3B8;">🔁 Transfer GW Ini</span>
+            <span style="font-weight: 800; color: #FFFFFF; font-family: Space Grotesk, sans-serif;">{tx_count} transfer</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with m3:
+        hit_html = f'<span style="color: #ff6b85; font-weight: 800;">-{hits_val} pts</span>' if hits_val > 0 else '<span style="color: #00FF87; font-weight: 700;">0 pts (Free)</span>'
+        st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.82rem; color: #94A3B8;">💥 Biaya Transfer (Hits)</span>
+            <span style="font-family: Space Grotesk, sans-serif;">{hit_html}</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Captaincy & Chip Banner
+    chip_banner = ""
     if active_chip and active_chip != "-":
-        st.markdown(f'<span class="std-chip-tag">🃏 Chip aktif GW ini: {html.escape(str(active_chip))}</span>', unsafe_allow_html=True)
+        chip_banner = f'<span class="std-chip-tag" style="margin-left: 10px;">🃏 CHIP AKTIF: {html.escape(active_chip.upper())}</span>'
 
+    st.markdown(f"""
+    <div style="background: linear-gradient(90deg, rgba(255, 215, 0, 0.08), rgba(2, 239, 255, 0.05)); border: 1px solid rgba(255, 215, 0, 0.25); border-radius: 8px; padding: 10px 14px; margin: 12px 0 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div style="font-size: 0.88rem;">
+            👑 <span style="color: #FFE27A; font-weight: 700;">Kapten:</span> <b>{captain_str}</b>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            🅥 <span style="color: #E2E8F0; font-weight: 700;">Wakil Kapten:</span> <b>{vc_str}</b>
+        </div>
+        <div>{chip_banner}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Transfer activity section
     gw_transfers = row.get("gw_transfers", [])
     if gw_transfers:
-        st.markdown("##### 🔁 Aktivitas Transfer GW Ini")
+        st.markdown("<div style='font-family: Space Grotesk, sans-serif; font-size: 0.95rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;'>🔁 Aktivitas Transfer Pekan Ini</div>", unsafe_allow_html=True)
         for t in gw_transfers:
             pts_in = t.get('in_points', 0)
             pts_out = t.get('out_points', 0)
             net_pts = t.get('net_points', 0)
             if net_pts > 0:
-                net_badge = f'<span style="color: #00FF87; font-weight: 700; font-family: Space Grotesk, sans-serif;">+{net_pts} pts ✨</span>'
+                net_badge = f'<span style="color: #00FF87; font-weight: 800; font-family: Space Grotesk, sans-serif;">+{net_pts} pts ✨ (Untung)</span>'
             elif net_pts < 0:
-                net_badge = f'<span style="color: #ff6b85; font-weight: 700; font-family: Space Grotesk, sans-serif;">{net_pts} pts 📉</span>'
+                net_badge = f'<span style="color: #ff6b85; font-weight: 800; font-family: Space Grotesk, sans-serif;">{net_pts} pts 📉 (Rugi)</span>'
             else:
-                net_badge = f'<span style="color: var(--text-muted); font-weight: 700; font-family: Space Grotesk, sans-serif;">0 pts</span>'
+                net_badge = f'<span style="color: var(--text-muted); font-weight: 700; font-family: Space Grotesk, sans-serif;">0 pts (Netral)</span>'
 
             st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <div style="font-size: 0.88rem;">
-                    <span style="color: #ff6b85; font-weight: 700;">🔴 OUT:</span> {html.escape(t['out_name'])} <span class="std-muted">({t['out_team']} · £{t['out_cost']:.1f}m · <b style="color: #F5F7FA;">{pts_out} pts</b>)</span>
-                    <span style="color: var(--text-muted); margin: 0 6px;">➔</span>
-                    <span style="color: #00FF87; font-weight: 700;">🟢 IN:</span> {html.escape(t['in_name'])} <span class="std-muted">({t['in_team']} · £{t['in_cost']:.1f}m · <b style="color: #F5F7FA;">{pts_in} pts</b>)</span>
+            <div style="background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 9px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.86rem;">
+                    <span style="color: #ff6b85; font-weight: 700;">🔴 KELUAR:</span> {html.escape(t['out_name'])} <span class="std-muted">({t['out_team']} · £{t['out_cost']:.1f}m · <b style="color: #F5F7FA;">{pts_out} pts</b>)</span>
+                    <span style="color: #64748B; margin: 0 6px;">➔</span>
+                    <span style="color: #00FF87; font-weight: 700;">🟢 MASUK:</span> {html.escape(t['in_name'])} <span class="std-muted">({t['in_team']} · £{t['in_cost']:.1f}m · <b style="color: #F5F7FA;">{pts_in} pts</b>)</span>
                 </div>
                 <div>{net_badge}</div>
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    # Squad Pitch Section
+    st.markdown("<div style='font-family: Space Grotesk, sans-serif; font-size: 1.05rem; font-weight: 800; color: #FFFFFF; margin: 18px 0 6px;'>🏟️ Susunan Formasi & Poin Pemain</div>", unsafe_allow_html=True)
     squad = row.get("squad", [])
     if squad:
-        st.markdown("##### 🧑‍🤝‍🧑 Susunan Pemain")
         st.markdown(render_pitch_html(squad), unsafe_allow_html=True)
     else:
         st.info("Susunan pemain belum tersedia untuk gameweek ini.")
@@ -2305,8 +2688,41 @@ with tab2:
         # ----------------- CONTROLS -----------------
         all_teams_in_order = standings_df["Team Name"].tolist() if not standings_df.empty else []
         leader_team_name = all_teams_in_order[0] if all_teams_in_order else ""
+        team_rank_map = {name: idx + 1 for idx, name in enumerate(all_teams_in_order)}
 
-        col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([1.4, 1.0, 1.2])
+        # Mini Podium Summary Strip
+        if not standings_df.empty and len(standings_df) >= 3:
+            p1 = standings_df.iloc[0]
+            p2 = standings_df.iloc[1]
+            p3 = standings_df.iloc[2]
+            gap2 = p1["Total Points"] - p2["Total Points"]
+            gap3 = p1["Total Points"] - p3["Total Points"]
+            st.markdown(f"""
+            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+                <div style="flex:1; min-width:170px; background:linear-gradient(135deg, rgba(255,184,0,0.14), rgba(255,184,0,0.03)); border:1px solid rgba(255,184,0,0.45); border-radius:8px; padding:9px 12px;">
+                    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#FFB800; font-weight:700;">🥇 Pemuncak (#1)</div>
+                    <div style="font-size:14px; font-weight:800; color:#FFFFFF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{html.escape(p1['Team Name'])}</div>
+                    <div style="font-size:12px; color:#FCD34D; font-weight:700;">{p1['Total Points']} pts <span style="color:#94A3B8; font-weight:400; font-size:11px;">(+{gap2} dari P2)</span></div>
+                </div>
+                <div style="flex:1; min-width:170px; background:linear-gradient(135deg, rgba(0,242,254,0.12), rgba(0,242,254,0.02)); border:1px solid rgba(0,242,254,0.35); border-radius:8px; padding:9px 12px;">
+                    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#00F2FE; font-weight:700;">🥈 Posisi #2</div>
+                    <div style="font-size:14px; font-weight:800; color:#FFFFFF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{html.escape(p2['Team Name'])}</div>
+                    <div style="font-size:12px; color:#67E8F9; font-weight:700;">{p2['Total Points']} pts <span style="color:#F43F5E; font-weight:500; font-size:11px;">(-{gap2} pts)</span></div>
+                </div>
+                <div style="flex:1; min-width:170px; background:linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.02)); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:9px 12px;">
+                    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#10B981; font-weight:700;">🥉 Posisi #3</div>
+                    <div style="font-size:14px; font-weight:800; color:#FFFFFF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{html.escape(p3['Team Name'])}</div>
+                    <div style="font-size:12px; color:#6EE7B7; font-weight:700;">{p3['Total Points']} pts <span style="color:#F43F5E; font-weight:500; font-size:11px;">(-{gap3} pts)</span></div>
+                </div>
+                <div style="flex:1; min-width:170px; background:linear-gradient(135deg, rgba(56,189,248,0.10), rgba(56,189,248,0.02)); border:1px dashed rgba(56,189,248,0.4); border-radius:8px; padding:9px 12px;">
+                    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#38BDF8; font-weight:700;">⚡ Rata-Rata Liga</div>
+                    <div style="font-size:14px; font-weight:800; color:#FFFFFF;">Benchmark Divisi</div>
+                    <div style="font-size:12px; color:#BAE6FD; font-weight:700;">{current_league_avg:.1f} pts</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([1.5, 1.0, 1.3])
         with col_ctrl1:
             chart_type = st.selectbox(
                 "Pilih Tampilan Grafik:", 
@@ -2335,39 +2751,57 @@ with tab2:
                 help="Pilih satu tim untuk disorot jelas & berpendar neon hijau. Tim lainnya akan dibuat redup agar grafik tidak berantakan (anti-spaghetti)."
             )
 
-        if team_selection_mode == "Top Manajer":
-            top_mgrs_count = st.slider(
-                "Jumlah Manajer Teratas yang Ditampilkan:", 
-                min_value=3, 
-                max_value=min(25, total_managers), 
-                value=min(10, total_managers)
+        col_sub1, col_sub2, col_sub3 = st.columns([1.6, 1.1, 1.1])
+        with col_sub1:
+            if team_selection_mode == "Top Manajer":
+                top_mgrs_count = st.slider(
+                    "Jumlah Manajer Teratas yang Ditampilkan:", 
+                    min_value=3, 
+                    max_value=min(25, total_managers), 
+                    value=min(10, total_managers),
+                    help="Geser untuk mengatur berapa banyak tim teratas yang ingin dibandingkan."
+                )
+                selected_teams = standings_df.head(top_mgrs_count)["Team Name"].tolist()
+            else:
+                default_picks = all_teams_in_order[:min(5, len(all_teams_in_order))]
+                selected_teams = st.multiselect(
+                    "Pilih Tim yang Ingin Dibandingkan (Head-to-Head):",
+                    options=all_teams_in_order,
+                    default=default_picks
+                )
+                if not selected_teams:
+                    selected_teams = default_picks
+
+        with col_sub2:
+            show_direct_labels = st.toggle(
+                "🏷️ Label di Ujung Garis",
+                value=True,
+                help="Tampilkan nama tim dan poin langsung di ujung kanan grafik sehingga tidak perlu mencari di legenda bawah."
             )
-            selected_teams = standings_df.head(top_mgrs_count)["Team Name"].tolist()
-        else:
-            default_picks = all_teams_in_order[:min(5, len(all_teams_in_order))]
-            selected_teams = st.multiselect(
-                "Pilih Tim yang Ingin Dibandingkan (Head-to-Head):",
-                options=all_teams_in_order,
-                default=default_picks
+
+        with col_sub3:
+            show_league_avg = st.toggle(
+                "⚡ Garis Rata-Rata Liga",
+                value=True,
+                help="Tampilkan garis putus-putus acuan benchmark rata-rata liga."
             )
-            if not selected_teams:
-                selected_teams = default_picks
 
         # Ensure highlighted team is included in plot
         if highlight_team != "🌟 Tampilkan Semua Berwarna" and highlight_team not in selected_teams:
             selected_teams.append(highlight_team)
 
-        # 24 vibrant cyber/neon colors
-        PALETTE = [
-            "#00FF87", "#02EFFF", "#FFE27A", "#FF007F", "#A855F7",
-            "#FF5E57", "#38BDF8", "#F97316", "#EC4899", "#10B981",
-            "#8B5CF6", "#F59E0B", "#06B6D4", "#E11D48", "#84CC16",
-            "#6366F1", "#14B8A6", "#D946EF", "#FB923C", "#A3E635",
-            "#34D399", "#60A5FA", "#F472B6", "#FBBF24"
+        # Tiered visual hierarchy palette (Gold #1, Cyan #2, Emerald #3, followed by distinctive cyber accents)
+        TIERED_PALETTE = [
+            "#FFB800", "#00F2FE", "#10B981", "#8B5CF6", "#F43F5E",
+            "#FB923C", "#38BDF8", "#D946EF", "#A3E635", "#C084FC",
+            "#FBBF24", "#2DD4BF", "#F472B6", "#60A5FA", "#E879F9",
+            "#34D399", "#A78BFA", "#F87171", "#4ADE80", "#38BDF8"
         ]
 
         # Construct Plotly Figure with go.Figure
         fig = go.Figure()
+
+        endpoint_labels = []
 
         for idx, t in enumerate(selected_teams):
             t_sub = hist_enhanced[hist_enhanced["team_name"] == t].sort_values("gameweek")
@@ -2376,81 +2810,205 @@ with tab2:
 
             is_hl = (t == highlight_team)
             is_ldr = (t == leader_team_name)
+            current_rank = team_rank_map.get(t, idx + 1)
 
             if highlight_team != "🌟 Tampilkan Semua Berwarna":
                 if is_hl:
                     color = "#00FF87"
-                    width = 4.5
-                    marker_sz = 10
+                    width = 4.2
+                    marker_sz = 9
                     opacity = 1.0
                 elif is_ldr:
                     color = "#FFD700"
+                    width = 2.8
+                    marker_sz = 6
+                    opacity = 0.85
+                else:
+                    color = TIERED_PALETTE[idx % len(TIERED_PALETTE)]
+                    width = 1.3
+                    marker_sz = 3.5
+                    opacity = 0.18
+            else:
+                color = TIERED_PALETTE[idx % len(TIERED_PALETTE)]
+                if is_ldr:
+                    width = 3.6
+                    marker_sz = 8
+                    opacity = 1.0
+                elif current_rank == 2:
                     width = 3.0
                     marker_sz = 7
                     opacity = 0.95
+                elif current_rank == 3:
+                    width = 2.8
+                    marker_sz = 7
+                    opacity = 0.92
                 else:
-                    color = PALETTE[idx % len(PALETTE)]
-                    width = 1.5
-                    marker_sz = 4
-                    opacity = 0.22
-            else:
-                color = PALETTE[idx % len(PALETTE)]
-                width = 2.8
-                marker_sz = 7
-                opacity = 0.88
+                    width = 2.2
+                    marker_sz = 5.5
+                    opacity = 0.80
 
             if chart_type.startswith("🏆"):
                 y_col = "league_rank"
-                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Peringkat Liga: <b>#%{{y}}</b><extra></extra>"
+                unit = ""
+                ht = f"<b>#{current_rank} {html.escape(t)}</b><br>Gameweek %{{x}}<br>Peringkat Liga: <b>#%{{y}}</b><extra></extra>"
             elif chart_type.startswith("📈"):
                 y_col = "total_points"
-                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Total Poin: <b>%{{y}} pts</b><extra></extra>"
+                unit = "pts"
+                ht = f"<b>#{current_rank} {html.escape(t)}</b><br>Gameweek %{{x}}<br>Total Poin: <b>%{{y}} pts</b><extra></extra>"
             elif chart_type.startswith("🎯"):
                 y_col = "gap_to_leader"
-                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Selisih vs #1: <b>%{{y}} pts</b><extra></extra>"
+                unit = "pts"
+                ht = f"<b>#{current_rank} {html.escape(t)}</b><br>Gameweek %{{x}}<br>Selisih vs #1: <b>%{{y}} pts</b><extra></extra>"
             elif chart_type.startswith("⚡"):
                 y_col = "gw_points"
-                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Skor GW: <b>%{{y}} pts</b><extra></extra>"
+                unit = "pts"
+                ht = f"<b>#{current_rank} {html.escape(t)}</b><br>Gameweek %{{x}}<br>Skor GW: <b>%{{y}} pts</b><extra></extra>"
             else:
                 y_col = "overall_rank"
-                ht = f"<b>{html.escape(t)}</b><br>Gameweek %{{x}}<br>Overall Rank: <b>%{{y:,}}</b><extra></extra>"
+                unit = ""
+                ht = f"<b>#{current_rank} {html.escape(t)}</b><br>Gameweek %{{x}}<br>Overall Rank: <b>#%{{y:,}}</b><extra></extra>"
+
+            fill_kwargs = {}
+            if is_ldr and chart_type.startswith("📈") and highlight_team == "🌟 Tampilkan Semua Berwarna":
+                fill_kwargs = dict(fill="tozeroy", fillcolor="rgba(255, 184, 0, 0.04)")
 
             fig.add_trace(go.Scatter(
                 x=t_sub["gameweek"],
                 y=t_sub[y_col],
-                name=t,
+                name=f"#{current_rank} {t}",
                 mode="lines+markers",
-                line=dict(color=color, width=width, shape="spline", smoothing=0.8),
-                marker=dict(size=marker_sz, color=color),
+                line=dict(color=color, width=width, shape="spline", smoothing=0.65),
+                marker=dict(
+                    size=marker_sz,
+                    color=color,
+                    line=dict(width=1.2, color="#0F172A")
+                ),
                 opacity=opacity,
-                hovertemplate=ht
+                hovertemplate=ht,
+                showlegend=(not show_direct_labels) or (highlight_team != "🌟 Tampilkan Semua Berwarna"),
+                **fill_kwargs
             ))
+
+            last_row = t_sub.iloc[-1]
+            endpoint_labels.append({
+                "team": t,
+                "x": int(last_row["gameweek"]),
+                "y": float(last_row[y_col]),
+                "rank": current_rank,
+                "color": color,
+                "is_hl": is_hl,
+                "is_ldr": is_ldr
+            })
 
         # Benchmarks
-        if chart_type.startswith("📈"):
-            fig.add_trace(go.Scatter(
-                x=league_avg_per_gw["gameweek"],
-                y=league_avg_per_gw["avg_total_points"].round(1),
-                name="⚡ Rata-Rata Liga",
-                mode="lines",
-                line=dict(color="#38BDF8", width=2.5, dash="dash"),
-                hovertemplate="<b>⚡ Rata-Rata Liga</b><br>Gameweek %{x}<br>Rata-rata: <b>%{y} pts</b><extra></extra>"
-            ))
-        elif chart_type.startswith("⚡"):
-            fig.add_trace(go.Scatter(
-                x=league_avg_per_gw["gameweek"],
-                y=league_avg_per_gw["avg_gw_points"].round(1),
-                name="⚡ Rata-Rata Liga",
-                mode="lines",
-                line=dict(color="#38BDF8", width=2.5, dash="dash"),
-                hovertemplate="<b>⚡ Rata-Rata Liga</b><br>Gameweek %{x}<br>Rata-rata: <b>%{y} pts</b><extra></extra>"
-            ))
+        if show_league_avg and not league_avg_per_gw.empty:
+            if chart_type.startswith("📈"):
+                avg_y = league_avg_per_gw["avg_total_points"].round(1)
+                fig.add_trace(go.Scatter(
+                    x=league_avg_per_gw["gameweek"],
+                    y=avg_y,
+                    name="⚡ Rata-Rata Liga",
+                    mode="lines",
+                    line=dict(color="#38BDF8", width=2.2, dash="dash"),
+                    hovertemplate="<b>⚡ Rata-Rata Liga</b><br>Gameweek %{x}<br>Rata-rata: <b>%{y} pts</b><extra></extra>",
+                    showlegend=True
+                ))
+                if show_direct_labels and len(avg_y) > 0:
+                    last_avg_x = int(league_avg_per_gw["gameweek"].iloc[-1])
+                    last_avg_y = float(avg_y.iloc[-1])
+                    fig.add_annotation(
+                        x=last_avg_x + 0.1,
+                        y=last_avg_y,
+                        text=f"<b>⚡ Avg Liga</b> <span style='color:#38BDF8; font-weight:700;'>{last_avg_y:.0f} pts</span>",
+                        showarrow=False,
+                        xanchor="left",
+                        yanchor="middle",
+                        font=dict(size=9.5, color="#94A3B8", family="Space Grotesk, sans-serif"),
+                        bgcolor="rgba(15, 23, 42, 0.78)",
+                        bordercolor="rgba(56, 189, 248, 0.45)",
+                        borderwidth=1,
+                        borderpad=2.5
+                    )
+            elif chart_type.startswith("⚡"):
+                avg_gw = league_avg_per_gw["avg_gw_points"].round(1)
+                fig.add_trace(go.Scatter(
+                    x=league_avg_per_gw["gameweek"],
+                    y=avg_gw,
+                    name="⚡ Rata-Rata Liga",
+                    mode="lines",
+                    line=dict(color="#38BDF8", width=2.2, dash="dash"),
+                    hovertemplate="<b>⚡ Rata-Rata Liga</b><br>Gameweek %{x}<br>Rata-rata: <b>%{y} pts</b><extra></extra>",
+                    showlegend=True
+                ))
         elif chart_type.startswith("🎯"):
-            # Horizontal zero line for leader
             fig.add_hline(y=0, line_dash="dash", line_color="#FFD700", line_width=1.5, annotation_text="👑 Posisi #1 (Leader)", annotation_position="top left", annotation_font_color="#FFD700")
 
-        # Focus mode annotations
-        if highlight_team != "🌟 Tampilkan Semua Berwarna":
+        # Direct End-of-Line Badges with Anti-Collision
+        if show_direct_labels and endpoint_labels:
+            is_rank_metric = (chart_type.startswith("🏆") or chart_type.startswith("🌍"))
+            endpoint_labels.sort(key=lambda item: item["y"], reverse=(not is_rank_metric))
+
+            y_vals = [item["y"] for item in endpoint_labels]
+            y_span = (max(y_vals) - min(y_vals)) if len(y_vals) > 1 and max(y_vals) != min(y_vals) else 20.0
+            min_gap = max(0.5 if is_rank_metric else 6.0, y_span * (0.045 if not is_rank_metric else 0.04))
+
+            adj_y = list(y_vals)
+            for _ in range(8):
+                for i in range(len(adj_y) - 1):
+                    if is_rank_metric:
+                        gap = adj_y[i+1] - adj_y[i]
+                        if gap < min_gap:
+                            shift = (min_gap - gap) / 2.0
+                            adj_y[i] -= shift
+                            adj_y[i+1] += shift
+                    else:
+                        gap = adj_y[i] - adj_y[i+1]
+                        if gap < min_gap:
+                            shift = (min_gap - gap) / 2.0
+                            adj_y[i] += shift
+                            adj_y[i+1] -= shift
+
+            for idx_e, item in enumerate(endpoint_labels):
+                t_name = item["team"]
+                orig_y = item["y"]
+                target_y = adj_y[idx_e]
+                t_color = item["color"]
+                r_num = item["rank"]
+
+                if r_num == 1:
+                    badge = "🥇"
+                elif r_num == 2:
+                    badge = "🥈"
+                elif r_num == 3:
+                    badge = "🥉"
+                else:
+                    badge = f"{r_num}."
+
+                if is_rank_metric:
+                    disp_val = f"#{int(round(orig_y))}"
+                elif chart_type.startswith("🎯"):
+                    disp_val = f"{int(round(orig_y))} pts" if orig_y == 0 else f"{int(round(orig_y))} pts"
+                else:
+                    disp_val = f"{int(round(orig_y))} pts"
+
+                short_t = t_name if len(t_name) <= 15 else t_name[:13] + "…"
+
+                fig.add_annotation(
+                    x=item["x"] + 0.1,
+                    y=target_y,
+                    text=f"<b>{badge} {html.escape(short_t)}</b> <span style='color:{t_color}; font-weight:800;'>{disp_val}</span>",
+                    showarrow=False,
+                    xanchor="left",
+                    yanchor="middle",
+                    font=dict(size=10.5, color="#F8FAFC", family="Space Grotesk, sans-serif"),
+                    bgcolor="rgba(15, 23, 42, 0.85)",
+                    bordercolor=t_color,
+                    borderwidth=1.2,
+                    borderpad=3.2
+                )
+
+        # Focus mode annotations (if focus is active and direct labels are off)
+        if not show_direct_labels and highlight_team != "🌟 Tampilkan Semua Berwarna":
             hl_sub = hist_enhanced[hist_enhanced["team_name"] == highlight_team].sort_values("gameweek")
             if not hl_sub.empty:
                 last_p = hl_sub.iloc[-1]
@@ -2475,59 +3033,39 @@ with tab2:
                     borderpad=4
                 )
 
-            if leader_team_name != highlight_team and leader_team_name in selected_teams:
-                ldr_sub = hist_enhanced[hist_enhanced["team_name"] == leader_team_name].sort_values("gameweek")
-                if not ldr_sub.empty:
-                    last_ldr = ldr_sub.iloc[-1]
-                    last_ldr_x = last_ldr["gameweek"]
-                    last_ldr_y = last_ldr[y_col]
-                    val_ldr = f"#{last_ldr_y}" if "rank" in y_col else f"{last_ldr_y} pts"
-                    fig.add_annotation(
-                        x=last_ldr_x,
-                        y=last_ldr_y,
-                        text=f" 👑 <b>#1 {leader_team_name}</b> ({val_ldr})",
-                        showarrow=True,
-                        arrowhead=2,
-                        arrowsize=1,
-                        arrowwidth=1.5,
-                        arrowcolor="#FFD700",
-                        ax=40,
-                        ay=-20,
-                        font=dict(size=10, color="#FFFFFF", family="Space Grotesk"),
-                        bgcolor="rgba(255, 215, 0, 0.2)",
-                        bordercolor="#FFD700",
-                        borderwidth=1,
-                        borderpad=3
-                    )
+        max_gw_val = int(hist_enhanced["gameweek"].max()) if not hist_enhanced.empty else 8
+        min_gw_val = int(hist_enhanced["gameweek"].min()) if not hist_enhanced.empty else 1
+        x_range = [min_gw_val - 0.15, max_gw_val + (1.95 if show_direct_labels else 0.35)]
 
         # Plotly Layout
         fig.update_layout(
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            hovermode="x unified",
+            hovermode="x unified" if len(selected_teams) <= 5 else "closest",
             legend=dict(
                 orientation="h",
-                y=-0.22,
+                y=-0.16,
                 x=0.5,
                 xanchor="center",
-                font=dict(size=11, color="#CBD5E1")
+                font=dict(size=10.5, color="#CBD5E1")
             ),
-            margin=dict(l=20, r=40, t=30, b=40),
-            height=490,
+            margin=dict(l=15, r=20 if not show_direct_labels else 25, t=25, b=35),
+            height=510,
             font=dict(family="Space Grotesk, sans-serif", color="#D1D8E0"),
             xaxis=dict(
                 dtick=1,
                 tick0=1,
+                range=x_range,
                 tickmode="linear",
                 tickprefix="GW ",
                 title="",
                 showgrid=True,
-                gridcolor="rgba(255,255,255,0.06)"
+                gridcolor="rgba(255,255,255,0.05)"
             ),
             yaxis=dict(
                 showgrid=True,
-                gridcolor="rgba(255,255,255,0.06)",
+                gridcolor="rgba(255,255,255,0.05)",
                 title=""
             )
         )
